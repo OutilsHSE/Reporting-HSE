@@ -382,6 +382,62 @@ const CONFIG = { WEBHOOK_URL: '' };
   .im input{width:100%;min-width:0;padding:4px 2px;text-align:center;font-size:12.5px}
   .im.finT input{border-color:rgba(61,155,217,.55)}
   .tri .tr.force{border-color:var(--accent)}
+  td.journal{color:#a9e8c6;position:relative}
+  td.journal i{font-style:normal;font-size:9px;opacity:.7;margin-left:3px}
+  td.muted{color:var(--muted)}
+  /* --- code couleur des cases du mensuel --- */
+  .legende-couleurs{display:flex;gap:8px;flex-wrap:wrap;margin:0 0 12px;font-size:12px}
+  .lc{border-radius:999px;padding:3px 10px;border:1px solid var(--line);color:var(--muted)}
+  .lc.auto{border-color:rgba(31,168,102,.5);color:#a9e8c6}
+  .lc.defaut{border-color:rgba(224,150,40,.7);color:#E09628;background:rgba(224,150,40,.10)}
+  .lc.acompleter{border-style:dashed;border-color:rgba(61,155,217,.6);color:#8fc6ea}
+  .lc.saisi{border-color:var(--line);color:var(--txt)}
+  .lc.journal{border-color:rgba(31,168,102,.5);color:#a9e8c6}
+  .lc.doute{border-color:rgba(224,150,40,.7);color:#E09628}
+  /* notes et doutes sur les indicateurs */
+  .notes{border:1px solid rgba(224,150,40,.35);border-radius:12px;background:rgba(224,150,40,.05);margin:0 0 14px;padding:0}
+  .notes summary{cursor:pointer;padding:10px 14px;font-weight:600;font-size:13.5px;list-style:none}
+  .notes summary::-webkit-details-marker{display:none}
+  .notes summary::before{content:'▸';display:inline-block;margin-right:6px;transition:transform .15s;color:var(--muted)}
+  .notes[open] summary::before{transform:rotate(90deg)}
+  .notes .nb{margin-left:6px;font-size:11.5px;font-weight:700;border-radius:999px;padding:2px 9px;background:#E09628;color:#1a1200}
+  .notes .nb.ok{background:rgba(31,168,102,.25);color:#a9e8c6}
+  .nl{padding:0 14px 10px;display:grid;gap:8px;grid-template-columns:repeat(auto-fill,minmax(280px,1fr));align-items:start}
+  .dls{padding:0 14px 8px;display:grid;gap:4px}
+  .dl{display:flex;justify-content:space-between;align-items:center;gap:10px;font-size:12.5px;color:#f0c98a;line-height:1.4;padding:5px 9px;border-radius:8px;background:rgba(224,150,40,.08)}
+  .dl.vu{color:var(--faint);background:none}
+  .dl b{color:inherit}
+  .dl button{flex:none}
+  .notes .sub{margin:0 14px 10px}
+  .notes .sub summary{padding:4px 0;font-size:12px;font-weight:600;color:var(--muted)}
+  .notes .sub .nl{padding:8px 0 0}
+  .ni{background:var(--card);border:1px solid var(--line);border-radius:10px;padding:9px 11px;font-size:12.5px}
+  .ni.doute{border-color:rgba(224,150,40,.6)}
+  .ni b{display:block;font-size:13px;margin-bottom:2px}
+  .ni .src{display:block;color:var(--faint);font-size:11.5px;margin-bottom:4px}
+  .ni p{margin:4px 0;color:var(--muted);line-height:1.4}
+  .ni .dt{color:#E09628;border-top:1px dashed rgba(224,150,40,.4);padding-top:6px;margin-top:6px}
+  .ni .dt.vu{color:var(--faint);border-top-color:var(--line)}
+  .btn-xs{padding:2px 8px;font-size:11.5px;margin-left:6px;vertical-align:middle}
+  th .thn{background:none;border:0;color:inherit;font:inherit;cursor:pointer;padding:0;text-align:right}
+  th .thn i{font-style:normal;font-size:10px;opacity:.55;margin-left:3px}
+  th .thn.doute i{opacity:1;font-size:11px}
+  th .thn:hover{text-decoration:underline}
+  td.doute{box-shadow:inset 3px 0 0 #E09628;position:relative}
+  td.doute i{font-style:normal;font-size:11px;margin-left:2px}
+  input.defaut{border-color:rgba(224,150,40,.8)!important;background:rgba(224,150,40,.12)!important;color:#ffd39a!important}
+  input.acompleter{border-style:dashed!important;border-color:rgba(61,155,217,.55)!important}
+  input.saisi{border-color:var(--line)}
+  .mase-pdf{border:1px dashed var(--cyan);border-radius:10px;padding:10px 12px;margin:6px 0 12px;font-size:13px}
+  .mase-pdf input[type=file]{display:block;margin-top:8px}
+  /* --- flashs SSE : grille mois x type --- */
+  table.flash th.mois{text-align:left}
+  table.flash td.n{text-align:center;font-weight:700;font-size:15px}
+  table.flash td.n.zero{color:var(--muted);font-weight:400}
+  table.flash td.n.ok{color:var(--ok)}
+  .fl-sujets{font-size:12px;color:var(--muted);margin-top:2px;line-height:1.4}
+  .fl-sujets b{color:var(--txt);font-weight:600}
+  .fl-add{font-size:11px;padding:2px 7px;margin-top:4px}
   @media(max-width:700px){.imois{grid-template-columns:repeat(6,minmax(0,1fr))}}
 
   /* --- barre de sélection d'agence --- */
@@ -418,6 +474,7 @@ const CONFIG = { WEBHOOK_URL: '' };
   <section class="view" id="v-acc"></section>
   <section class="view" id="v-rem"></section>
   <section class="view" id="v-se"></section>
+  <section class="view" id="v-flash"></section>
   <section class="view" id="v-obj"></section>
   <section class="view" id="v-reglages">
     <div class="barre"><h2>⚙️ Réglages</h2></div>
@@ -437,6 +494,7 @@ const CONFIG = { WEBHOOK_URL: '' };
         <button class="btn btn-danger" onclick="oublierSync()">Oublier</button></div>
       <p class="hint" id="sync-etat"></p>
     </div>
+    <div id="notes-reglages"></div>
     <div class="card"><h2>🏅 Certification MASE & divers</h2>
       <p class="small muted">Ces quelques valeurs changent rarement — elles s'affichent telles quelles sur l'intranet.</p>
       <div id="params-box"></div>
@@ -463,6 +521,13 @@ const CONFIG = { WEBHOOK_URL: '' };
   <div class="grab"></div><h2>🗺 Chantiers → agence</h2>
   <p class="small muted">Chaque chantier affecté une fois classe toutes ses remontées et ses incidents, aujourd'hui et demain.</p>
   <div id="mc-corps"></div>
+  <div class="row" style="margin-top:16px">
+    <button class="btn btn-ghost grow" onclick="closeModal()">Fermer</button></div>
+</div></div>
+<div class="modal" id="m-note"><div class="sheet">
+  <div class="grab"></div><h2 id="mn-titre">Indicateur</h2>
+  <p class="small muted">D'où vient ce chiffre, depuis quand, et ce dont je ne suis pas sûr.</p>
+  <div id="mn-corps"></div>
   <div class="row" style="margin-top:16px">
     <button class="btn btn-ghost grow" onclick="closeModal()">Fermer</button></div>
 </div></div>
@@ -669,12 +734,14 @@ function semer(){
 function moisLigne(k,ag){
   const a=(ag===undefined)?agence:ag;
   let m=state.mensuel.find(x=>x.k===k&&(x.agence||'')===a);
-  if(!m){m={k:k,agence:a,maj:nowISO()};state.mensuel.push(m)}
+  if(!m){m={k:k,agence:a,mp:0,maj:nowISO()};state.mensuel.push(m)}
+  if(m.mp===undefined||m.mp==='')m.mp=0;        // maladies pro : 0 par défaut, chaque mois
   return m;
 }
 const COLS_SOMME=['heures','effectif','accArret','accSans','benins','trajet','joursArret','mp',
-  'vms','vmsCd','vmsAd','dechetsT','accueils','arrivants','visites',
-  'vigiAtt','vigiRecu','qhpEff','qhpPart','formations'];
+  'vms','vmsCd','vmsAd','dechetsT','accueilsAuto','accueilsMan','accueils','accueilsEmb','accueilsInt',
+  'arrivants','interimaires','visites',
+  'vigiAtt','vigiRecu','qhpEff','qhpPart','formationsAuto','formationsMan','formations'];
 /* vue Global d'un mois : la somme des agences, calculée, jamais stockée */
 function moisSomme(k){
   const l=state.mensuel.filter(x=>x.k===k);
@@ -699,6 +766,7 @@ const ECRANS = [
   {id:'v-acc',t:'Accidentologie',c:'var(--warn)',r:renderAcc},
   {id:'v-rem',t:'Remontées',c:'var(--cyan)',r:renderRem},
   {id:'v-se',t:'Santé & Environnement',c:'var(--ok)',r:renderSE},
+  {id:'v-flash',t:'Flashs SSE',c:'var(--accent)',r:renderFlash},
   {id:'v-obj',t:'Objectifs SSE',c:'var(--violet)',r:renderObj}
 ];
 /* ---------- écran de correspondance chantier → agence ----------
@@ -791,21 +859,169 @@ function banniere(){
 }
 
 /* ==================== ÉCRAN 1 — MENSUEL ==================== */
+/* ---------- LA RÈGLE DE BASCULE ----------
+   Avant le mois de bascule, l'ancien reporting 2026 fait foi : tout est saisi (ou
+   chargé) et rattaché à l'agence historique. À partir de la bascule, les outils
+   font foi : l'accidentologie est comptée depuis le journal d'analyses, les
+   accueils et formations arrivent en automatique (+ une colonne manuelle pour
+   les fiches papier). La bascule est annoncée par le serveur ; à défaut 2026-09. */
+let BASCULE='2026-09', AGENCE_HISTO='IDF';
+function apresBascule(k){return String(k||'').slice(0,7)>=BASCULE}
+
 const COLM = [
   {k:'heures',t:'Heures travaillées'},{k:'effectif',t:'Effectif moyen'},
-  {k:'accArret',t:'AT avec arrêt'},{k:'accSans',t:'AT sans arrêt'},{k:'benins',t:'AT bénins'},
-  {k:'trajet',t:'AT trajet'},{k:'joursArret',t:'Jours d’arrêt'},{k:'mp',t:'Maladies pro'},
-  {k:'vigiAtt',t:'Vigi. attendues'},
-  {k:'arrivants',t:'Nouveaux arrivants'},
+  {k:'accArret',t:'AT avec arrêt',journal:true},{k:'accSans',t:'AT sans arrêt',journal:true},
+  {k:'benins',t:'AT bénins',journal:true},{k:'trajet',t:'AT trajet',journal:true},
+  {k:'joursArret',t:'Jours d’arrêt'},{k:'mp',t:'Maladies pro',defaut:0},
+  {k:'arrivants',t:'Nouveaux arrivants',defautDe:'accueilsEmb'},
+  {k:'interimaires',t:'Nouveaux intérimaires',defautDe:'accueilsInt'},
+  {k:'accueilsMan',t:'Accueils papier',apres:true},{k:'formationsMan',t:'Fiches formation papier',apres:true},
   {k:'dechetsT',t:'Déchets (t)'},{k:'dechetsVal',t:'Valorisé (%)'}
 ];
 const COLM_AUTO = [
-  {k:'vigiRecu',t:'Vigi. reçues'},
+  {k:'vigiAtt',t:'Vigi. attendues'},{k:'vigiRecu',t:'Vigi. reçues'},
   {k:'qhpEff',t:'QHP effectif'},{k:'qhpPart',t:'QHP participants'},
   {k:'vms',t:'VMS'},{k:'vmsCd',t:'VMS · cond. dang.'},{k:'vmsAd',t:'VMS · actes dang.'},
-  {k:'accueils',t:'Accueils'},{k:'visites',t:'Visites'},
-  {k:'formations',t:'Fiches formation'}
+  {k:'accueilsAuto',t:'Accueils appli'},{k:'accueils',t:'Accueils total',total:true},
+  {k:'accueilsEmb',t:'Accueils embauchés'},{k:'accueilsInt',t:'Accueils intérim'},
+  {k:'visites',t:'Visites (CR)'},
+  {k:'formationsAuto',t:'Fiches formation appli'},{k:'formations',t:'Fiches formation total',total:true}
 ];
+/* ---------- notes et doutes sur les indicateurs ----------
+   Ce que l'outil sait de chaque indicateur (d'où il vient, depuis quand) et ce dont
+   je ne suis pas sûr — directement dans l'écran de saisie, pas dans un inventaire à
+   part. Un doute porte un identifiant : « ✓ Vu » le range (mémorisé sur cet appareil). */
+const NOTES_COL = [
+  [['heures'],{src:'Saisie — chiffres de la paie',txt:'Par agence. Janvier→août : ancien reporting 2026, rattaché à IDF.'}],
+  [['effectif'],{src:'Saisie',txt:'Effectif moyen du mois, par agence.',
+    doute:{id:'effectif-auto',txt:'Le roster QHP porte l’agence de chaque personne : je peux l’automatiser si tu veux — dis-le moi.'}}],
+  [['accArret','accSans','benins','trajet'],{src:'Journal d’analyses d’accident',dep:'sept. 2026',
+    txt:'Comptés par mois et par agence depuis la bascule — plus de saisie. Avant : ancien reporting, IDF.',
+    doute:{id:'ag-trame',txt:'L’agence d’un AT vient du chantier tant que la trame d’analyse d’accident ne la porte pas : à ajouter dans la trame (une case Agence). En attendant, un chantier inconnu tombe en « non réparti ».'}}],
+  [['joursArret'],{src:'Saisie',txt:'Le journal d’analyses ne les donne pas : à saisir.'}],
+  [['mp'],{src:'Saisie',txt:'0 par défaut chaque mois. Affiché dans Santé sur l’intranet.'}],
+  [['arrivants'],{src:'Saisie — par défaut = accueils d’embauchés',
+    txt:'Embauchés + stagiaires + alternants. Posé automatiquement depuis les accueils, orange tant que tu ne l’as pas saisi ; une saisie le confirme et n’est jamais écrasée.'}],
+  [['interimaires'],{src:'Saisie — par défaut = accueils d’intérimaires',txt:'Même mécanique que les nouveaux arrivants.'}],
+  [['accueilsMan'],{src:'Saisie',dep:'sept. 2026',txt:'Ce que les conducteurs remplissent à la main. Total = appli + papier, recalculé à chaque saisie.'}],
+  [['formationsMan','formationsAuto','formations'],{src:'Registre Formations + saisie papier',dep:'sept. 2026',txt:'Même mécanique que les accueils.',
+    doute:{id:'form-agence',txt:'Le registre des fiches de formation ne porte pas l’agence : la part appli reste en « non réparti », seule la part papier est par agence. À ajouter dans la fiche si tu veux la ventilation.'}}],
+  [['dechetsT','dechetsVal'],{src:'Saisie',txt:'Tonnage et part valorisée. Aucun historique 2026 : ça démarre maintenant.'}],
+  [['vigiAtt','vigiRecu'],{src:'Classeur Vigiminutes — onglet SYNTHÈSE MENSUELLE',dep:'toute l’année 2026',
+    txt:'Bloc GLOBAL janvier→août (mêmes chiffres que l’ancien reporting, rattachés à IDF), blocs IDF / NA / BPL depuis juillet. Plus aucun comptage des onglets Forms.'}],
+  [['qhpEff','qhpPart'],{src:'Classeur Suivi QHP — roster + présences',dep:'sept. 2026',
+    txt:'Janvier→août : ancien reporting, sur IDF et le global. Depuis septembre : l’outil QHP, ventilé par le roster.',
+    doute:{id:'qhp-fige',txt:'La propriété QHP_FIGE_JUSQUA ne sert plus (la bascule la remplace) : si tu l’avais posée dans le script, tu peux la retirer.'}}],
+  [['vms','vmsCd','vmsAd'],{src:'Classeur VMS — Données',dep:'sept. 2026',
+    txt:'Janvier→août : ancien reporting, IDF. Le classeur porte le chantier, pas l’agence : elle vient de la table des chantiers, alimentée par les Vigiminutes.',
+    doute:{id:'vms-chantier',txt:'Une VMS sur un chantier que les Vigiminutes ne connaissent pas tombe en « non réparti » — à corriger dans 🗺 Chantiers.'}}],
+  [['accueilsAuto','accueils','accueilsEmb','accueilsInt'],{src:'Janvier→août : les 47 fiches d’accueil PDF transcrites · depuis sept. : registre Accueils (colonne Agence CDES)',dep:'sept. 2026',
+    txt:'Le registre distingue embauchés et intérimaires. Total = appli + papier.',
+    doute:{id:'juin-bpl',txt:'Juin BPL : 4 intérimaires rattachés à BPL d’après le lieu (Suscinio, Trignac), pas d’après une agence écrite — à confirmer. La case est marquée ⚠️ dans le tableau.'}}],
+  [['visites'],{src:'Classeur CR Observations — N° de CR distincts',dep:'sept. 2026',txt:'Avant : ancien reporting, IDF.',
+    doute:{id:'cr-agence',txt:'Les CR ne portent pas l’agence : les visites restent en « non réparti » pour l’instant.'}}]
+];
+const NOTES_ECRAN = {
+  'v-acc':[
+    {t:'Incidents',src:'Journal d’analyses d’accident',dep:'données 2026',
+     txt:'Créés automatiquement, dédoublonnés sur date + chantier + personne. Un incident supprimé ici ne revient pas.',
+     doute:{id:'acc-completer',txt:'Le journal ne donne ni la zone lésée, ni la typologie, ni la cause fondamentale : à compléter ici, sinon le bonhomme et les typologies restent vides. Le % d’événements analysés compte les fiches avec un arbre des causes ou typologie + cause.'}},
+    {t:'Agence d’un incident',src:'Chantier → table des chantiers (Vigiminutes)',
+     doute:{id:'ag-trame'}},
+    {t:'Actions correctives : total, faites, en retard',src:'Journal d’analyses (actions rattachées)',dep:'données 2026',txt:'Plus aucune saisie.'}
+  ],
+  'v-rem':[
+    {t:'Remontées terrain',src:'Classeur Vigiminutes — onglet Agence · Type · Domaine · Statut',dep:'toute l’année 2026',
+     txt:'Créées si absentes, jamais écrasées. L’agence est celle de la colonne Agence.',
+     doute:{id:'rem-statut',txt:'Le statut vient de l’appli Vigiminutes. Si tu le changes ici, la collecte suivante ne le remet pas — mais l’appli Vigiminutes, elle, ne le saura pas.'}},
+    {t:'Situations dangereuses — tous outils',src:'Vigi SD + VMS conditions dangereuses + VMS actes dangereux',
+     doute:{id:'sd-actes',txt:'J’ai compté les actes dangereux des VMS dans le total. Dis-moi si tu ne veux que les conditions.'}}
+  ],
+  'v-se':[
+    {t:'Campagnes · sensibilisations · événements environnementaux',src:'Saisie ici, par agence',
+     txt:'Comptés par l’intranet : une ligne = une action, quel que soit le nombre de personnes concernées.'}
+  ],
+  'v-flash':[
+    {t:'Flashs Sécurité · Santé · Environnement · RETEX',src:'Saisie ici',
+     txt:'Un flash = une ligne, commun à toutes les agences. Le comptage annuel remplace la saisie dans Réglages.'}
+  ],
+  'v-obj':[
+    {t:'Objectifs SSE',src:'Saisie ici — 4 lignes automatiques, 19 saisies au mois',txt:'Bilan par trimestre ; les trimestres à venir n’ont pas de bilan.',
+     doute:{id:'obj-cibles',txt:'3 cibles restent à poser : objectifs 4, 12 et 13 (« cible à poser » dans la fiche).'}}
+  ],
+  'v-reglages':[
+    {t:'Certification MASE',src:'Rapport d’audit PDF + certificat PDF',dep:'V20',
+     txt:'Extraction automatique : note, cinq axes, agence, n° et dates de validité — vérifiée sur tes PDF, corrigeable à la main. Une seule agence certifiée : le MASE reste global.'},
+    {t:'Objectif mensuel de VMS · taux de conformité réglementaire · points du mois',src:'Saisie ici',txt:'Restent en global.'},
+    {t:'Postes couverts par une fiche de formation',src:'—',
+     doute:{id:'postes-fiches',txt:'Pas branché : le collecteur ne remonte pas le libellé du poste. Prévu, pas fait — à confirmer si tu y tiens.'}}
+  ]
+};
+const DOUTES_CASES=[{k:'2026-06',ag:'BPL',champ:'accueilsInt',id:'juin-bpl',txt:'4 intérimaires rattachés à BPL d’après le lieu — à confirmer'}];
+function noteCol(k){
+  const e=NOTES_COL.find(x=>x[0].indexOf(k)>=0);
+  if(!e)return null;
+  const c=COLM.concat(COLM_AUTO).find(x=>x.k===k);
+  return Object.assign({t:c?c.t:k},e[1]);
+}
+function douteTexte(id){
+  // un doute cité dans plusieurs écrans est écrit une seule fois : on va le chercher
+  let t='';NOTES_COL.forEach(x=>{if(x[1].doute&&x[1].doute.id===id&&x[1].doute.txt)t=x[1].doute.txt});
+  if(!t)Object.keys(NOTES_ECRAN).forEach(v=>NOTES_ECRAN[v].forEach(x=>{if(x.doute&&x.doute.id===id&&x.doute.txt)t=x.doute.txt}));
+  return t;
+}
+function douteVu(id){return (conf.doutesVus||[]).indexOf(id)>=0}
+function marquerDoute(id,vu){
+  const l=(conf.doutesVus||[]).filter(x=>x!==id);
+  conf.doutesVus=vu?l.concat([id]):l;saveConf();closeModal();go(vue);
+}
+function notesDe(ecran){
+  if(ecran==='v-mensuel'){
+    const tous=COLM.concat(COLM_AUTO);
+    return NOTES_COL.map(e=>Object.assign({t:e[0].map(k=>(tous.find(x=>x.k===k)||{t:k}).t).join(' · ')},e[1]));
+  }
+  return NOTES_ECRAN[ecran]||[];
+}
+function htmlNote(nt){
+  let h='<div class="ni'+(nt.doute&&!douteVu(nt.doute.id)?' doute':'')+'"><b>'+esc(nt.t)+'</b>'+
+    '<span class="src">'+esc(nt.src||'')+(nt.dep?' · <i>depuis '+esc(nt.dep)+'</i>':'')+'</span>'+
+    (nt.txt?'<p>'+esc(nt.txt)+'</p>':'');
+  if(nt.doute){
+    const id=nt.doute.id, vu=douteVu(id);
+    h+='<p class="dt'+(vu?' vu':'')+'">'+(vu?'✓ ':'⚠️ ')+esc(douteTexte(id))+' '+
+       (vu?'<button class="btn btn-ghost btn-xs" onclick="marquerDoute(\''+id+'\',false)" title="Remettre ce doute en avant">↺</button>'
+          :'<button class="btn btn-ghost btn-xs" onclick="marquerDoute(\''+id+'\',true)">✓ Vu</button>')+'</p>';
+  }
+  return h+'</div>';
+}
+function panneauNotes(ecran){
+  const l=notesDe(ecran);if(!l.length)return '';
+  const ids=[];l.forEach(nt=>{if(nt.doute&&ids.indexOf(nt.doute.id)<0)ids.push(nt.doute.id)});
+  const ouverts=ids.filter(id=>!douteVu(id)).length;
+  // en tête : les doutes, compacts ; en dessous, repliées, les notes sur chaque indicateur
+  let d='';
+  ids.forEach(id=>{
+    const nt=l.find(x=>x.doute&&x.doute.id===id), vu=douteVu(id);
+    d+='<div class="dl'+(vu?' vu':'')+'"><span>'+(vu?'✓':'⚠️')+' <b>'+esc(nt.t)+'</b> — '+esc(douteTexte(id))+'</span>'+
+       (vu?'<button class="btn btn-ghost btn-xs" onclick="marquerDoute(\''+id+'\',false)" title="Remettre ce doute en avant">↺</button>'
+          :'<button class="btn btn-ghost btn-xs" onclick="marquerDoute(\''+id+'\',true)">✓ Vu</button>')+'</div>';
+  });
+  return '<details class="notes"'+(ouverts?' open':'')+'><summary>💬 Mes doutes sur ces indicateurs'+
+    (ouverts?' <span class="nb">'+ouverts+' à trancher</span>':(ids.length?' <span class="nb ok">tout vu ✓</span>':' <span class="nb ok">aucun</span>'))+'</summary>'+
+    (d?'<div class="dls">'+d+'</div>':'')+
+    '<details class="sub"><summary>D’où vient chaque chiffre, depuis quand ('+l.length+' notes)</summary>'+
+    '<div class="nl">'+l.map(htmlNote).join('')+'</div></details></details>';
+}
+function voirNote(k){
+  const nt=noteCol(k);if(!nt)return;
+  document.getElementById('mn-titre').textContent=nt.t;
+  document.getElementById('mn-corps').innerHTML=htmlNote(nt);
+  document.getElementById('m-note').classList.add('open');
+}
+function douteCase(mk,champ){
+  const d=DOUTES_CASES.find(x=>x.k===mk&&x.champ===champ&&(estGlobal()||agence===x.ag));
+  return d&&!douteVu(d.id)?d:null;
+}
 function renderMensuel(){
   const rows=moisAnnee();
   const S=k=>rows.reduce((s,m)=>s+n(m[k]),0);
@@ -819,28 +1035,56 @@ function renderMensuel(){
        ?'Vue Global : somme des agences, en lecture seule — choisis une agence pour saisir'
        :'Les colonnes vertes se remplissent toutes seules')+'</span>'+
     '<div class="droite"><button class="btn btn-ghost btn-sm" onclick="window.print()">🖨</button></div></div>';
+  h+='<div class="legende-couleurs">'+
+    '<span class="lc auto">🤖 automatique</span>'+
+    '<span class="lc defaut">par défaut — à vérifier</span>'+
+    '<span class="lc acompleter">à compléter</span>'+
+    '<span class="lc saisi">saisi</span>'+
+    '<span class="lc journal">compté depuis le journal</span>'+
+    '<span class="lc doute">⚠️ doute à trancher</span></div>';
+  h+=panneauNotes('v-mensuel');
   h+='<div class="kpis" style="margin-bottom:14px">'+
     kpi(H.toLocaleString('fr-FR'),'Heures travaillées')+
     kpi(AA,'AT avec arrêt',AA>0?'bad':'good')+
     kpi(JA,'Jours d’arrêt')+
     kpi(String(tf).replace('.',','),'Taux de fréquence')+
     kpi(String(tg).replace('.',','),'Taux de gravité')+'</div>';
+  // en-tête cliquable : ℹ ouvre la note de la colonne, ⚠️ signale un doute pas encore vu
+  const th=(c,style)=>{const nt=noteCol(c.k), d=nt&&nt.doute&&!douteVu(nt.doute.id);
+    return '<th style="text-align:right;'+(style||'')+'">'+(nt
+      ?'<button class="thn'+(d?' doute':'')+'" onclick="voirNote(\''+c.k+'\')" title="'+esc(nt.src||'')+(d?' — ⚠️ un doute à trancher':'')+'">'+esc(c.t)+'<i>'+(d?'⚠️':'ℹ')+'</i></button>'
+      :esc(c.t))+'</th>'};
   h+='<div class="card"><div class="tbl-scroll"><table class="uni"><thead><tr><th>Mois</th>'+
-     COLM.map(c=>'<th style="text-align:right">'+esc(c.t)+'</th>').join('')+
+     COLM.map(c=>th(c)).join('')+
      '<th style="text-align:right">% Vigi</th>'+
-     COLM_AUTO.map(c=>'<th style="text-align:right;color:#a9e8c6">'+esc(c.t)+'</th>').join('')+
+     COLM_AUTO.map(c=>th(c,'color:#a9e8c6')).join('')+
      '<th style="text-align:right">% QHP</th></tr></thead><tbody>';
   rows.forEach(m=>{
     h+='<tr><td><b>'+MOIS_L[Number(m.k.slice(5,7))-1]+'</b></td>';
     const fmt=v=>(v===undefined||v==='')?'—':(isNaN(Number(v))?esc(String(v)):Number(v).toLocaleString('fr-FR'));
-    COLM.forEach(c=>{h+=lecture
-      ?'<td class="num">'+fmt(m[c.k])+'</td>'
-      :'<td><input inputmode="decimal" value="'+(m[c.k]===undefined?'':esc(m[c.k]))+'" onchange="majMois(\''+m.k+'\',\''+c.k+'\',this.value)"></td>'});
+    const apres=apresBascule(m.k);
+    COLM.forEach(c=>{
+      // après la bascule, l'accidentologie vient du journal : plus de saisie
+      const gele=c.journal&&apres;
+      // les colonnes « papier » n'existent qu'après la bascule
+      if(c.apres&&!apres){h+='<td class="num muted">·</td>';return}
+      const vide=(m[c.k]===undefined||m[c.k]==='');
+      const def=estDefaut(m,c.k);
+      // code couleur : 🤖 automatique · 🟠 par défaut, à vérifier · ⚪ à compléter · saisi
+      const cls=def?'defaut':(vide?'acompleter':'saisi');
+      const titre=def?'Valeur par défaut'+(c.defautDe?' (= '+esc((COLM_AUTO.find(x=>x.k===c.defautDe)||{}).t||c.defautDe)+')':'')+' — à vérifier, saisir pour confirmer'
+                 :(vide?'À compléter':'');
+      h+=(lecture||gele)
+      ?'<td class="num'+(gele?' journal':'')+'"'+(gele?' title="Compté depuis le journal d’analyses d’accident"':'')+'>'+fmt(m[c.k])+(gele?'<i>🤖</i>':'')+'</td>'
+      :'<td class="'+cls+'"><input class="'+cls+'" inputmode="decimal" title="'+titre+'" value="'+(vide?'':esc(m[c.k]))+'" onchange="majMois(\''+m.k+'\',\''+c.k+'\',this.value)"></td>'});
     const pv=n(m.vigiAtt)?Math.round(n(m.vigiRecu)/n(m.vigiAtt)*100):null;
     h+='<td class="calc">'+(pv===null?'—':pv+' %')+'</td>';
-    COLM_AUTO.forEach(c=>{h+=lecture
-      ?'<td class="num" style="color:#a9e8c6">'+fmt(m[c.k])+'</td>'
-      :'<td><input class="auto" inputmode="decimal" value="'+(m[c.k]===undefined?'':esc(m[c.k]))+'" onchange="majMois(\''+m.k+'\',\''+c.k+'\',this.value)"></td>'});
+    COLM_AUTO.forEach(c=>{
+      const d=douteCase(m.k,c.k);   // ⚠️ une case dont je ne suis pas sûr
+      const attrs=(d?' class="doute" title="'+esc(d.txt)+'"':''), flag=(d?'<i>⚠️</i>':'');
+      h+=(lecture||c.total)
+      ?'<td class="num'+(d?' doute':'')+'" style="color:#a9e8c6"'+(d?' title="'+esc(d.txt)+'"':'')+'>'+fmt(m[c.k])+flag+'</td>'
+      :'<td'+attrs+'><input class="auto" inputmode="decimal" value="'+(m[c.k]===undefined?'':esc(m[c.k]))+'" onchange="majMois(\''+m.k+'\',\''+c.k+'\',this.value)">'+flag+'</td>'});
     const pq=n(m.qhpEff)?Math.round(n(m.qhpPart)/n(m.qhpEff)*100):null;
     h+='<td class="calc">'+(pq===null?'—':pq+' %')+'</td></tr>';
   });
@@ -852,12 +1096,51 @@ function renderMensuel(){
   const pqT=S('qhpEff')?Math.round(S('qhpPart')/S('qhpEff')*100):null;
   h+='<td class="calc">'+(pqT===null?'—':pqT+' %')+'</td></tr>';
   h+='</tbody></table></div>';
-  h+='<p class="hint" style="margin-top:10px">🟢 Vigiminutes reçues, QHP, VMS, accueils, visites et fiches de formation sont recopiés chaque nuit depuis tes applis — tu peux corriger une case si besoin, elle sera reprise à la prochaine collecte. À toi : les heures, l’accidentologie et les Vigiminutes attendues.</p></div>';
+  h+='<p class="hint" style="margin-top:10px">🟢 Les colonnes vertes sont recopiées depuis tes outils — Vigiminutes (synthèse mensuelle), QHP, VMS, accueils, visites, fiches de formation. '+
+    'Depuis <b>'+esc(MOIS_L[Number(BASCULE.slice(5,7))-1]+' '+BASCULE.slice(0,4))+'</b> (la bascule), l’accidentologie 🤖 est comptée depuis le journal d’analyses d’accident et les accueils / fiches '+
+    'de formation ont une colonne <b>papier</b> pour ce que les conducteurs remplissent à la main. Avant la bascule, c’est l’ancien reporting 2026 qui fait foi, rattaché à '+esc(AGENCE_HISTO)+'. '+
+    'À toi : les heures, l’effectif, les jours d’arrêt, les maladies pro (0 par défaut), les nouveaux arrivants, les déchets.</p></div>';
   document.getElementById('v-mensuel').innerHTML=h;
+}
+/* ---------- valeurs par défaut, à vérifier ----------
+   Une case « par défaut » a été remplie par l'outil à partir d'une autre donnée
+   (ex. nouveaux arrivants = accueils d'embauchés). Elle reste marquée orange tant
+   que Justin ne l'a pas saisie lui-même — la saisir lève la marque. */
+function defautsDe(m){
+  if(Array.isArray(m.defauts))return m.defauts;
+  if(typeof m.defauts==='string'&&m.defauts){try{const j=JSON.parse(m.defauts);if(Array.isArray(j))return j}catch(e){}}
+  return [];
+}
+function estDefaut(m,c){return defautsDe(m).indexOf(c)>=0}
+function poserDefauts(m){
+  const d=defautsDe(m).slice();
+  COLM.forEach(c=>{
+    if(!c.defautDe)return;
+    const src=m[c.defautDe];
+    if(src===undefined||src==='')return;
+    const vide=(m[c.k]===undefined||m[c.k]==='');
+    if(!vide&&d.indexOf(c.k)<0)return;             // saisi à la main : on ne touche pas
+    m[c.k]=n(src);
+    if(d.indexOf(c.k)<0)d.push(c.k);
+  });
+  m.defauts=d;
+}
+/* accueils et formations : total = automatique + papier, sur les mois d'après bascule */
+function totauxMois(m){
+  if(!apresBascule(m.k))return;
+  [['accueils','accueilsAuto','accueilsMan'],['formations','formationsAuto','formationsMan']].forEach(t=>{
+    const a=m[t[1]],b=m[t[2]];
+    if((a===undefined||a==='')&&(b===undefined||b===''))return;
+    m[t[0]]=n(a)+n(b);
+  });
 }
 function majMois(k,champ,val){
   const m=moisLigne(k);
   m[champ]=(val===''?'':n(val));
+  // une saisie lève la marque « par défaut » sur cette case
+  const d=defautsDe(m).filter(x=>x!==champ);m.defauts=d;
+  totauxMois(m);
+  poserDefauts(m);
   m.maj=nowISO();
   save();renderMensuel();syncAuto();
 }
@@ -876,6 +1159,7 @@ function renderAcc(){
   const tf=H?Math.round(AA*1e6/H*100)/100:0, tg=H?Math.round(JA*1000/H*100)/100:0;
   let h='<div class="barre"><h2>🚨 Accidentologie '+ANNEE+'</h2>'+
     '<div class="droite"><button class="btn btn-accent" onclick="ouvrirFiche(\'incident\')">＋ Déclarer un incident</button></div></div>';
+  h+=panneauNotes('v-acc');
   h+='<div class="kpis" style="margin-bottom:14px">'+
     kpi(AA,'AT avec arrêt',AA>0?'bad':'good')+
     kpi(cpt('sans arr'),'AT sans arrêt','mid')+
@@ -962,6 +1246,7 @@ function renderRem(){
   const presqu=rem.filter(r=>/presqu/i.test(r.type||'')).length;
   let h='<div class="barre"><h2>👁️ Remontées Vigiminutes '+ANNEE+'</h2>'+
     '<div class="droite"><button class="btn btn-accent" onclick="ouvrirFiche(\'remontee\')">＋ Ajouter une remontée</button></div></div>';
+  h+=panneauNotes('v-rem');
   h+='<div class="kpis" style="margin-bottom:14px">'+
     kpi(rem.length,'Remontées')+kpi(trait,'Traitées','good')+
     kpi(pc+' %','Taux de traitement',pc>=80?'good':'mid')+
@@ -1005,6 +1290,7 @@ function renderSE(){
   const cpt=t=>l.filter(x=>String(x.nature||'').toLowerCase().indexOf(t)>=0).length;
   let h='<div class="barre"><h2>🌱 Santé & Environnement '+ANNEE+'</h2>'+
     '<div class="droite"><button class="btn btn-accent" onclick="ouvrirFiche(\'se\')">＋ Ajouter une action</button></div></div>';
+  h+=panneauNotes('v-se');
   h+='<div class="kpis" style="margin-bottom:14px">'+
     kpi(cpt('campagne'),'Campagnes de mesures')+
     kpi(cpt('sensibilisation santé'),'Sensibilisations santé')+
@@ -1025,6 +1311,58 @@ function renderSE(){
   document.getElementById('v-se').innerHTML=h;
 }
 
+/* ==================== ÉCRAN — FLASHS SSE ====================
+   Quantifier chaque mois les flashs partagés, par type, avec leurs sujets.
+   Commun à toutes les agences : la bascule d'agence n'a pas d'effet ici.
+   Un flash = une ligne de la table Santé & Environnement (nature « Flash … »),
+   ce qui le fait compter automatiquement dans l'intranet. */
+const TYPES_FLASH=[
+  {nat:'Flash Sécurité',t:'Sécurité',c:'#ff6b5e'},
+  {nat:'Flash Santé',t:'Santé',c:'#3D9BD9'},
+  {nat:'Flash Environnement',t:'Environnement',c:'#1FA866'},
+  {nat:'Flash RETEX suite AT',t:'RETEX suite AT',c:'#E09628'}];
+function flashsDe(k,nat){
+  return actifs(state.se).filter(x=>String(x.nature||'')===nat&&String(x.date||'').slice(0,7)===k);
+}
+function renderFlash(){
+  const an=String(ANNEE);
+  let h='<div class="barre"><h2>📣 Flashs SSE '+an+'</h2>'+
+    '<span class="p gris">Commun à toutes les agences</span>'+
+    '<div class="droite"><button class="btn btn-accent" onclick="nouveauFlash()">＋ Nouveau flash</button></div></div>';
+  h+=panneauNotes('v-flash');
+  // compteurs annuels
+  const tot=TYPES_FLASH.map(t=>actifs(state.se).filter(x=>String(x.nature||'')===t.nat&&String(x.date||'').slice(0,4)===an).length);
+  h+='<div class="kpis" style="margin-bottom:14px">'+
+    kpi(tot.reduce((a,b)=>a+b,0),'Flashs diffusés')+
+    TYPES_FLASH.map((t,i)=>kpi(tot[i],t.t)).join('')+'</div>';
+  h+='<div class="card"><div class="tbl-scroll"><table class="uni flash"><thead><tr><th class="mois">Mois</th>'+
+     TYPES_FLASH.map(t=>'<th style="text-align:center;color:'+t.c+'">'+esc(t.t)+'</th>').join('')+
+     '<th style="text-align:center">Total</th></tr></thead><tbody>';
+  for(let i=0;i<12;i++){
+    const k=an+'-'+String(i+1).padStart(2,'0');
+    const parType=TYPES_FLASH.map(t=>flashsDe(k,t.nat));
+    const n2=parType.reduce((s,l)=>s+l.length,0);
+    h+='<tr><td class="mois"><b>'+MOIS_L[i]+'</b></td>';
+    parType.forEach((l,j)=>{
+      h+='<td class="n '+(l.length?'ok':'zero')+'">'+l.length+
+         (l.length?'<div class="fl-sujets">'+l.map(x=>'<div><b>'+esc(x.intitule||'(sans sujet)')+'</b>'+
+           ' <button class="btn btn-ghost btn-sm" style="padding:0 5px" onclick="ouvrirFiche(\'se\',\''+x.id+'\')">✏️</button></div>').join('')+'</div>':'')+
+         '<button class="btn btn-ghost fl-add" onclick="nouveauFlash(\''+k+'\',\''+TYPES_FLASH[j].nat.replace(/'/g,"\\'")+'\')">＋</button></td>';
+    });
+    h+='<td class="n '+(n2?'':'zero')+'">'+n2+'</td></tr>';
+  }
+  h+='</tbody></table></div></div>';
+  h+='<p class="hint" style="margin-top:8px">Chaque flash est aussi une ligne de l’écran Santé & Environnement : l’intranet les compte tout seul, par type et par mois.</p>';
+  document.getElementById('v-flash').innerHTML=h;
+}
+/* ouvre la fiche Santé & Environnement pré-remplie en flash */
+function nouveauFlash(k,nat){
+  ouvrirFiche('se');
+  const d=document.getElementById('f-date'), na=document.getElementById('f-nature');
+  if(d&&k)d.value=k+'-15';
+  if(na&&nat)na.value=nat;
+}
+
 /* ==================== ÉCRAN 5 — OBJECTIFS SSE ==================== */
 const DOM_COUL={'SECURITE':'#ff6b5e','SÉCURITÉ':'#ff6b5e','SANTE':'#3D9BD9','SANTÉ':'#3D9BD9',
   'ENVIRONNEMENT':'#1FA866','CULTURE SSE':'#9A6BE0'};
@@ -1036,6 +1374,7 @@ function renderObj(){
     '<div class="droite">'+
     (objSansInds()?'<button class="btn btn-primary" onclick="prefillInds()" title="Reprend les indicateurs du classeur « TABLEAU DE BORD Indicateurs SSE CDES 2026 »">📥 Pré-remplir les indicateurs ('+objSansInds()+')</button> ':'')+
     '<button class="btn btn-accent" onclick="ouvrirFiche(\'objectif\')">＋ Nouvel objectif</button></div></div>';
+  h+=panneauNotes('v-obj');
   h+='<div class="kpis" style="margin-bottom:14px">'+
     kpi(l.length,'Objectifs')+
     kpi(compteS('😀'),'Atteints','good')+
@@ -1509,7 +1848,7 @@ async function appel(payload,ms){
 }
 function payloadSync(){
   return {secret:conf.secret,action:'rep-sync',appareil:conf.appareil||'appareil',data:{
-    mensuel:state.mensuel.map(o=>Object.assign({},o,{maj:o.maj||EPOCH})),
+    mensuel:state.mensuel.map(m=>Object.assign({},m,{maj:m.maj||EPOCH,defauts:JSON.stringify(defautsDe(m))})),
     /* la zone lésée est résolue avant l'envoi : le dashboard reçoit un identifiant net */
     incidents:state.incidents.map(o=>Object.assign({},o,{maj:o.maj||EPOCH,zone:o.zone||zoneDepuisTexte(o.zoneTexte)||''})),
     remontees:state.remontees.map(o=>Object.assign({},o,{maj:o.maj||EPOCH})),
@@ -1522,6 +1861,8 @@ function payloadSync(){
 }
 function appliquer(d){
   ['mensuel','incidents','remontees','se','objectifs','chantiers'].forEach(k=>{if(Array.isArray(d[k]))state[k]=d[k]});
+  if(d.bascule&&/^\d{4}-\d{2}$/.test(d.bascule))BASCULE=d.bascule;
+  if(d.agenceHistorique)AGENCE_HISTO=d.agenceHistorique;
   if(d.params&&typeof d.params==='object')state.params=Object.assign({},state.params,d.params);
   save();
 }
@@ -1574,6 +1915,10 @@ function renderParams(){
     const pr=(cle,lib,type)=>'<label class="f">'+lib+'</label><input type="'+(type||'text')+'" id="pr-'+cle+'" value="'+
       esc(state.params[cle]===undefined?'':state.params[cle])+'" onchange="majParam(\''+cle+'\',this.value)">';
     h+='<p class="aide" style="margin-top:2px">Certification MASE — à mettre à jour une fois par an, après l’audit.</p>';
+    h+='<div class="mase-pdf"><b>📄 Lire les PDF</b> — dépose le <b>rapport d’audit</b> et le <b>certificat</b> : '+
+       'la note, les cinq axes, l’agence, le n° et les dates de validité se remplissent tout seuls.'+
+       '<input type="file" id="mase-pdf" accept="application/pdf" multiple onchange="lireMasePdf(this)">'+
+       '<div id="mase-pdf-etat" class="aide"></div></div>';
     h+=pr('mase.avancement','Note obtenue à l’audit MASE (%)','number');
     h+=pr('mase.agence','Agence concernée');
     h+='<div class="frm">'+pr('mase.debut','Certifié à compter du','date')+pr('mase.fin','Jusqu’au','date')+'</div>';
@@ -1591,8 +1936,98 @@ function renderParams(){
   box.innerHTML=h;
 }
 function majParam(k,v){state.params[k]=String(v||'').trim();state.params._maj=nowISO();save();toast('Enregistré ✓');syncAuto()}
+
+/* ==================== MASE : lecture du rapport d'audit et du certificat ====================
+   Le rapport SOCOTEC et le certificat du comité de pilotage ont une structure stable :
+     « TOTAL AUDIT 3910 / 5000 78,2% »          → la note
+     « 1 Engagement de la direction … 720 / 900 80,0% » → un axe par chapitre 1 à 5
+     « Société : CDES – Agence d’Ile-de-France »  → l'agence
+     « N° N 2026-1066 »                            → le numéro du certificat
+     « valable à compter du 05/06/2026 jusqu'au 04/06/2027 » → la validité
+   On reconstruit les lignes du PDF (pdf.js donne des morceaux, pas des lignes)
+   puis on applique ces motifs. Rien n'est écrasé sans être trouvé. */
+const PDFJS_URL='https://cdnjs.cloudflare.com/ajax/libs/pdf.js/3.11.174/pdf.min.js';
+const PDFJS_WORKER='https://cdnjs.cloudflare.com/ajax/libs/pdf.js/3.11.174/pdf.worker.min.js';
+function chargerPdfJs(){
+  if(window.pdfjsLib)return Promise.resolve(window.pdfjsLib);
+  return new Promise((ok,ko)=>{
+    const sc=document.createElement('script');sc.src=PDFJS_URL;
+    sc.onload=()=>{window.pdfjsLib.GlobalWorkerOptions.workerSrc=PDFJS_WORKER;ok(window.pdfjsLib)};
+    sc.onerror=()=>ko(new Error('pdf.js inaccessible (réseau ?)'));
+    document.head.appendChild(sc);
+  });
+}
+/* texte d'un PDF, ligne par ligne : on regroupe les morceaux par ordonnée */
+async function lignesPdf(fichier){
+  const lib=await chargerPdfJs();
+  const buf=await fichier.arrayBuffer();
+  const doc=await lib.getDocument({data:buf}).promise;
+  const lignes=[];
+  for(let p=1;p<=doc.numPages;p++){
+    const page=await doc.getPage(p);
+    const tc=await page.getTextContent();
+    const parY={};
+    tc.items.forEach(it=>{
+      if(!it.str||!it.str.trim())return;
+      const y=Math.round(it.transform[5]/2)*2;       // tolérance de 2 pt
+      (parY[y]=parY[y]||[]).push({x:it.transform[4],s:it.str});
+    });
+    Object.keys(parY).map(Number).sort((a,b)=>b-a).forEach(y=>{
+      lignes.push(parY[y].sort((a,b)=>a.x-b.x).map(o=>o.s).join(' ').replace(/\s+/g,' ').trim());
+    });
+  }
+  return lignes;
+}
+/* motifs → champs MASE. Renvoie {champs:{cle:valeur}, trouves:[libellés]} */
+function extraireMase(lignes){
+  const ch={},vus=[];
+  const fr=d=>{const m=String(d).match(/(\d{2})\/(\d{2})\/(\d{4})/);return m?m[3]+'-'+m[2]+'-'+m[1]:''};
+  const num=v=>String(v).replace(',','.');
+  const AXES={'1':'mase.ax1','2':'mase.ax2','3':'mase.ax3','4':'mase.ax4','5':'mase.ax5'};
+  // pdf.js peut rendre les accents en forme décomposée (e + accent) : on recompose.
+  // Et les tirets / apostrophes typographiques ressortent parfois comme des
+  // caractères de contrôle Windows-1252 (145-150), invisibles : on les ramène en ASCII.
+  const propre=l=>String(l).normalize('NFC')
+    .replace(/[\u0091\u0092\u2018\u2019]/g,"'").replace(/[\u0093\u0094\u201C\u201D]/g,'"')
+    .replace(/[\u0096\u0097\u2013\u2014]/g,'-').replace(/\u00A0/g,' ');
+  lignes.map(propre).forEach(l=>{
+    let m;
+    if((m=l.match(/TOTAL\s+AUDIT\s+\d+\s*\/\s*\d+\s+([\d,\.]+)\s*%/i))){ch['mase.avancement']=num(m[1]);vus.push('note globale '+m[1]+' %')}
+    // un chapitre : « 3 Organisation du travail 1010 / 1300 77,7% » (pas « 3.2 … »)
+    else if((m=l.match(/^([1-5])\s+(?!\.)\D.*?\s(\d+)\s*\/\s*(\d+)\s+([\d,\.]+)\s*%/))){
+      if(AXES[m[1]]&&ch[AXES[m[1]]]===undefined){ch[AXES[m[1]]]=num(m[4]);vus.push('axe '+m[1]+' : '+m[4]+' %')}}
+    // pdf.js laisse parfois tomber le tiret et l'apostrophe typographiques : « CDES  Agence dIle-de-France »
+    else if((m=l.match(/^Soci[ée]t[ée]\s*:\s*CDES\s*[–-]?\s*Agence\s+d[’']?\s*(.+)$/i))){ch['mase.agence']=m[1].trim();vus.push('agence '+m[1].trim())}
+    else if((m=l.match(/N°\s*(N\s*\d{4}\s*-\s*\d{3,5})/))){ch['mase.num']=m[1].replace(/\s+/g,' ').trim();vus.push('certificat '+ch['mase.num'])}
+    else if((m=l.match(/compter\s+du\s+(\d{2}\/\d{2}\/\d{4}).*?jusqu[’']?\s*au\s+(\d{2}\/\d{2}\/\d{4})/i))){
+      ch['mase.debut']=fr(m[1]);ch['mase.fin']=fr(m[2]);vus.push('valable du '+m[1]+' au '+m[2])}
+  });
+  return {champs:ch,trouves:vus};
+}
+async function lireMasePdf(inp){
+  const etat=document.getElementById('mase-pdf-etat');
+  const fichiers=Array.from(inp.files||[]);if(!fichiers.length)return;
+  etat.textContent='Lecture en cours…';
+  try{
+    let total={};const rapport=[];
+    for(const f of fichiers){
+      const lignes=await lignesPdf(f);
+      const r=extraireMase(lignes);
+      Object.assign(total,r.champs);
+      rapport.push(f.name+' → '+(r.trouves.length?r.trouves.join(' · '):'rien de reconnu'));
+    }
+    const cles=Object.keys(total);
+    if(!cles.length){etat.innerHTML='⚠️ Aucune valeur reconnue. Ce sont bien le rapport d’audit MASE et le certificat ?<br>'+rapport.map(esc).join('<br>');return}
+    cles.forEach(k=>{state.params[k]=String(total[k])});
+    state.params._maj=nowISO();save();renderParams();syncAuto();
+    document.getElementById('mase-pdf-etat').innerHTML='✅ '+cles.length+' valeur'+(cles.length>1?'s':'')+' reprise'+(cles.length>1?'s':'')+' — vérifie et corrige si besoin.<br>'+rapport.map(esc).join('<br>');
+    toast('MASE mis à jour depuis le PDF ✓');
+  }catch(e){etat.textContent='❌ '+e.message}
+  inp.value='';
+}
 function renderReglages(){
   renderParams();
+  document.getElementById('notes-reglages').innerHTML=panneauNotes('v-reglages');
   document.getElementById('sy-url').value=conf.webhook||'';
   document.getElementById('sy-secret').value=conf.secret||'';
   document.getElementById('sy-appareil').value=conf.appareil||'';
@@ -1644,7 +2079,9 @@ function restaurerDepuisTexte(txt, provenance){
   const compte=['mensuel','incidents','remontees','objectifs'].map(k=>(st[k]||[]).length);
   if(!confirm('Remplacer les données actuelles par :\n'+
       compte[0]+' mois · '+compte[1]+' incidents · '+compte[2]+' remontées · '+compte[3]+' objectifs ?'))return false;
-  state=Object.assign({mensuel:[],incidents:[],remontees:[],se:[],objectifs:[],chantiers:[],tomb:{}},st);
+  // un import sans « params » (ex. l'import 2026) ne doit pas casser Réglages : on garde les réglages actuels
+  state=Object.assign({mensuel:[],incidents:[],remontees:[],se:[],objectifs:[],chantiers:[],tomb:{},params:state.params||{}},st);
+  if(!state.params||typeof state.params!=='object')state.params={};
   save();
   // le réaffichage vient APRÈS l'enregistrement : s'il échoue, les données sont déjà en lieu sûr
   try{ renderAgences(); go(vue); }
