@@ -297,6 +297,45 @@ const CONFIG = { WEBHOOK_URL: '' };
   table.uni input.auto{background:rgba(46,224,138,.07);border-color:rgba(46,224,138,.25);color:#a9e8c6}
   table.uni td.calc{color:var(--cyan);font-weight:700;text-align:right;font-variant-numeric:tabular-nums}
   .tbl-scroll{max-height:520px;overflow:auto;border-radius:12px;border:1px solid var(--line)}
+  /* tableau mensuel : 26 colonnes — chaque colonne garde une largeur lisible, le tableau défile */
+  table.mensuel{width:max-content;min-width:100%}
+  table.mensuel th,table.mensuel td{min-width:0;box-sizing:border-box;white-space:nowrap}
+  table.mensuel th{letter-spacing:.3px;line-height:1.25;white-space:nowrap;vertical-align:bottom}
+  table.mensuel th:first-child,table.mensuel td:first-child{min-width:112px;position:sticky;left:0;z-index:3;background:#0e2540}
+  table.mensuel th:first-child{z-index:4}
+  table.mensuel tbody tr:nth-child(even) td:first-child{background:#10283f}
+  table.mensuel tbody tr:hover td:first-child{background:#153454}
+  table.mensuel td.heures,table.mensuel th.heures{min-width:128px}
+  table.mensuel input{width:88px;min-width:0;padding:7px 8px;font-size:13px}
+  table.mensuel td.heures input{width:112px}
+  table.mensuel td.calc,table.mensuel th.calc{min-width:80px;white-space:nowrap}
+  /* thématiques : une ligne d'en-tête fusionnée, un liseré coloré à gauche de chaque bloc */
+  table.mensuel tr.grps th{top:0;height:30px}
+  table.mensuel tr.grps th:first-child{background:#0e2540;border-bottom:0}
+  table.mensuel thead tr:nth-child(2) th{top:30px}
+  table.mensuel th.grp{text-align:center;color:var(--gc);font-size:11.5px;letter-spacing:1.2px;
+    border-bottom:2px solid var(--gc);background:rgba(0,58,110,.75)}
+  table.mensuel th.g-rh:not(.grp),table.mensuel td.g-rh{border-left:2px solid rgba(116,204,239,.35)}
+  table.mensuel th.g-acc:not(.grp),table.mensuel td.g-acc{border-left:2px solid rgba(255,143,133,.35)}
+  table.mensuel th.g-anim:not(.grp),table.mensuel td.g-anim{border-left:2px solid rgba(255,207,92,.35)}
+  table.mensuel th.g-arr:not(.grp),table.mensuel td.g-arr{border-left:2px solid rgba(169,232,198,.35)}
+  table.mensuel th.g-env:not(.grp),table.mensuel td.g-env{border-left:2px solid rgba(196,166,240,.35)}
+  table.mensuel th.g-rh:not(.grp)~th.g-rh,table.mensuel td.g-rh~td.g-rh,
+  table.mensuel th.g-acc:not(.grp)~th.g-acc,table.mensuel td.g-acc~td.g-acc,
+  table.mensuel th.g-anim:not(.grp)~th.g-anim,table.mensuel td.g-anim~td.g-anim,
+  table.mensuel th.g-arr:not(.grp)~th.g-arr,table.mensuel td.g-arr~td.g-arr,
+  table.mensuel th.g-env:not(.grp)~th.g-env,table.mensuel td.g-env~td.g-env{border-left:0}
+  /* cases automatiques 🤖 */
+  table.mensuel td.auto{color:#a9e8c6;background:rgba(46,224,138,.05)}
+  table.mensuel td.auto i,table.mensuel td.journal i{font-style:normal;font-size:11px;margin-left:4px;opacity:.85}
+  table.mensuel td.total b{color:#fff}
+  table.mensuel input.gras{font-weight:700;color:#fff}
+  /* petites colonnes (CD / AD des VMS) */
+  table.mensuel th.petit,table.mensuel td.petit{min-width:0;padding-left:4px;padding-right:4px}
+  table.mensuel td.petit input{width:52px;font-size:12px}
+  table.mensuel tr.tot td{background:rgba(42,109,176,.25)}
+  table.mensuel tr.tot td:first-child{background:#173a5e}
+  .lc.total{border-color:rgba(255,255,255,.35);color:#fff}
   /* pastilles de statut, communes à tous les écrans */
   .p{display:inline-block;padding:2px 10px;border-radius:20px;font-size:11px;font-weight:700;border:1px solid transparent;white-space:nowrap}
   .p.rouge{background:rgba(255,107,94,.15);color:var(--warn);border-color:rgba(255,107,94,.4)}
@@ -868,25 +907,63 @@ function banniere(){
 let BASCULE='2026-09', AGENCE_HISTO='IDF';
 function apresBascule(k){return String(k||'').slice(0,7)>=BASCULE}
 
-const COLM = [
-  {k:'heures',t:'Heures travaillées'},{k:'effectif',t:'Effectif moyen'},
-  {k:'accArret',t:'AT avec arrêt',journal:true},{k:'accSans',t:'AT sans arrêt',journal:true},
-  {k:'benins',t:'AT bénins',journal:true},{k:'trajet',t:'AT trajet',journal:true},
-  {k:'joursArret',t:'Jours d’arrêt'},{k:'mp',t:'Maladies pro',defaut:0},
-  {k:'arrivants',t:'Nouveaux arrivants',defautDe:'accueilsEmb'},
-  {k:'interimaires',t:'Nouveaux intérimaires',defautDe:'accueilsInt'},
-  {k:'accueilsMan',t:'Accueils papier',apres:true},{k:'formationsMan',t:'Fiches formation papier',apres:true},
-  {k:'dechetsT',t:'Déchets (t)'},{k:'dechetsVal',t:'Valorisé (%)'}
+/* ---------- les colonnes du mensuel, par thématique ----------
+   Chaque colonne dit d'où elle vient :
+   · auto:'bascule'  → saisie avant la bascule, automatique (🤖) à partir d'elle
+   · auto:'vigi'     → idem, avec la date propre aux Vigiminutes (juillet 2026)
+   · journal:true    → comptée depuis le journal d'analyses d'accident après la bascule
+   · total:[a,b]     → calculée = a + b (jamais saisie)
+   · calc:'…'        → pourcentage calculé
+   · rien            → toujours saisie à la main
+   Global n'est jamais saisi : c'est la somme des agences. */
+let VIGI_AUTO='2026-07';           // à partir de ce mois, les Vigiminutes viennent du classeur, par agence
+const GROUPES=[
+  {id:'rh',   t:'Indicateurs',        c:'#74ccef'},
+  {id:'acc',  t:'Accidentologie',     c:'#ff8f85'},
+  {id:'anim', t:'Animation HSE',      c:'#ffcf5c'},
+  {id:'arr',  t:'Nouveaux arrivants', c:'#a9e8c6'},
+  {id:'env',  t:'Environnement',      c:'#c4a6f0'}
 ];
-const COLM_AUTO = [
-  {k:'vigiAtt',t:'Vigi. attendues'},{k:'vigiRecu',t:'Vigi. reçues'},
-  {k:'qhpEff',t:'QHP effectif'},{k:'qhpPart',t:'QHP participants'},
-  {k:'vms',t:'VMS'},{k:'vmsCd',t:'VMS · cond. dang.'},{k:'vmsAd',t:'VMS · actes dang.'},
-  {k:'accueilsAuto',t:'Accueils appli'},{k:'accueils',t:'Accueils total',total:true},
-  {k:'accueilsEmb',t:'Accueils embauchés'},{k:'accueilsInt',t:'Accueils intérim'},
-  {k:'visites',t:'Visites (CR)'},
-  {k:'formationsAuto',t:'Fiches formation appli'},{k:'formations',t:'Fiches formation total',total:true}
+const COLS=[
+  {k:'heures',t:'Heures travaillées',g:'rh',large:true},{k:'effectif',t:'Effectif moyen',g:'rh'},
+  {k:'accArret',t:'AT avec arrêt',g:'acc',journal:true},{k:'accSans',t:'AT sans arrêt',g:'acc',journal:true},
+  {k:'benins',t:'AT bénins',g:'acc',journal:true},{k:'trajet',t:'AT trajet',g:'acc',journal:true},
+  {k:'joursArret',t:'Jours d’arrêt',g:'acc'},{k:'mp',t:'Maladies pro',g:'acc',defaut:0},
+  {k:'qhpEff',t:'QHP effectif',g:'anim',auto:'bascule'},{k:'qhpPart',t:'QHP participants',g:'anim',auto:'bascule'},
+  {k:'pq',t:'% QHP',g:'anim',calc:['qhpPart','qhpEff']},
+  {k:'vigiAtt',t:'Vigi. attendues',g:'anim',auto:'vigi'},{k:'vigiRecu',t:'Vigi. reçues',g:'anim',auto:'vigi'},
+  {k:'pv',t:'% Vigi',g:'anim',calc:['vigiRecu','vigiAtt']},
+  {k:'vms',t:'VMS',g:'anim',gras:true},{k:'vmsCd',t:'CD',tt:'VMS · conditions dangereuses',g:'anim',petit:true},
+  {k:'vmsAd',t:'AD',tt:'VMS · actes dangereux',g:'anim',petit:true},
+  {k:'visites',t:'Visites (CR)',g:'anim',auto:'bascule'},
+  {k:'arrivants',t:'Nouveaux arrivants',g:'arr',defautDe:'accueilsEmb'},
+  {k:'interimaires',t:'Nouveaux intérimaires',g:'arr',defautDe:'accueilsInt'},
+  {k:'accueilsAuto',t:'Accueils digital',g:'arr',auto:'bascule'},{k:'accueilsMan',t:'Accueils papier',g:'arr'},
+  {k:'accueils',t:'Accueils total',g:'arr',total:['accueilsAuto','accueilsMan'],gras:true},
+  {k:'formationsAuto',t:'Fiches formation digital',g:'arr',auto:'bascule'},{k:'formationsMan',t:'Fiches formation papier',g:'arr'},
+  {k:'formations',t:'Fiches formation total',g:'arr',total:['formationsAuto','formationsMan'],gras:true},
+  {k:'dechetsT',t:'Déchets (t)',g:'env'},{k:'dechetsVal',t:'Valorisé (%)',g:'env'}
 ];
+// compatibilité : COLM = colonnes saisissables, COLM_AUTO = colonnes qui viennent des outils
+const COLM=COLS.filter(c=>!c.calc&&!c.total&&!c.auto), COLM_AUTO=COLS.filter(c=>c.auto||c.total);
+function debutAuto(c){return c.auto==='vigi'?VIGI_AUTO:BASCULE}
+/* ce que la case (colonne × mois) est : 'calc' · 'total' · 'auto' (🤖) · 'saisie' */
+function modeCase(c,mk){
+  if(c.calc)return 'calc';
+  if(c.total)return 'total';
+  if(c.journal)return apresBascule(mk)?'auto':'saisie';
+  if(c.auto)return String(mk).slice(0,7)>=debutAuto(c)?'auto':'saisie';
+  return 'saisie';
+}
+function libCol(k){const c=COLS.find(x=>x.k===k);return c?(c.tt||c.t):k}
+function sourceAuto(c){
+  if(c.auto==='vigi')return 'le classeur Reporting Vigiminutes';
+  if(/^qhp/.test(c.k))return 'l’appli Suivi QHP';
+  if(/^accueils/.test(c.k))return 'le registre des accueils';
+  if(/^formations/.test(c.k))return 'le registre des fiches de formation';
+  if(c.k==='visites')return 'le classeur CR Observations';
+  return 'tes outils';
+}
 /* ---------- notes et doutes sur les indicateurs ----------
    Ce que l'outil sait de chaque indicateur (d'où il vient, depuis quand) et ce dont
    je ne suis pas sûr — directement dans l'écran de saisie, pas dans un inventaire à
@@ -903,23 +980,21 @@ const NOTES_COL = [
   [['arrivants'],{src:'Saisie — par défaut = accueils d’embauchés',
     txt:'Embauchés + stagiaires + alternants. Posé automatiquement depuis les accueils, orange tant que tu ne l’as pas saisi ; une saisie le confirme et n’est jamais écrasée.'}],
   [['interimaires'],{src:'Saisie — par défaut = accueils d’intérimaires',txt:'Même mécanique que les nouveaux arrivants.'}],
-  [['accueilsMan'],{src:'Saisie',dep:'sept. 2026',txt:'Ce que les conducteurs remplissent à la main. Total = appli + papier, recalculé à chaque saisie.'}],
-  [['formationsMan','formationsAuto','formations'],{src:'Registre Formations + saisie papier',dep:'sept. 2026',txt:'Même mécanique que les accueils.',
-    doute:{id:'form-agence',txt:'Le registre des fiches de formation ne porte pas l’agence : la part appli reste en « non réparti », seule la part papier est par agence. À ajouter dans la fiche si tu veux la ventilation.'}}],
+  [['formationsAuto','formationsMan','formations'],{src:'Digital : registre Formations (fiches terminées) depuis sept., saisie avant · papier : saisie',dep:'sept. 2026',txt:'Même mécanique que les accueils : total = digital + papier.',
+    doute:{id:'form-agence',txt:'Le registre ne porte pas l’agence : je la déduis du roster QHP (nom du collaborateur) ; un nom absent du roster tombe en « non réparti ». Le métier (activité) de chaque fiche est bien dans le registre — je peux ventiler par métier si tu veux.'}}],
   [['dechetsT','dechetsVal'],{src:'Saisie',txt:'Tonnage et part valorisée. Aucun historique 2026 : ça démarre maintenant.'}],
-  [['vigiAtt','vigiRecu'],{src:'Classeur Vigiminutes — onglet SYNTHÈSE MENSUELLE',dep:'toute l’année 2026',
-    txt:'Bloc GLOBAL janvier→août (mêmes chiffres que l’ancien reporting, rattachés à IDF), blocs IDF / NA / BPL depuis juillet. Plus aucun comptage des onglets Forms.'}],
-  [['qhpEff','qhpPart'],{src:'Classeur Suivi QHP — roster + présences',dep:'sept. 2026',
-    txt:'Janvier→août : ancien reporting, sur IDF et le global. Depuis septembre : l’outil QHP, ventilé par le roster.',
+  [['vigiAtt','vigiRecu'],{src:'Janvier→juin : ancien reporting 2026 sur IDF, par défaut · depuis juillet : classeur Reporting Vigiminutes (SYNTHÈSE MENSUELLE), par agence',dep:'juil. 2026',
+    txt:'Les six premiers mois sont en orange : ce sont les chiffres de l’ancien reporting, saisir la case les confirme. Depuis juillet, les blocs IDF / NA / BPL du classeur remplissent les cases 🤖.'}],
+  [['qhpEff','qhpPart'],{src:'Janvier→août : ancien reporting 2026 sur IDF · depuis septembre : appli Suivi QHP (roster + présences), par agence',dep:'sept. 2026',
+    txt:'Juin→août ne sont pas dans l’ancien reporting : à compléter à la main. Depuis septembre, l’effectif et les participants de chaque agence viennent de l’agence portée par le roster.',
     doute:{id:'qhp-fige',txt:'La propriété QHP_FIGE_JUSQUA ne sert plus (la bascule la remplace) : si tu l’avais posée dans le script, tu peux la retirer.'}}],
-  [['vms','vmsCd','vmsAd'],{src:'Classeur VMS — Données',dep:'sept. 2026',
-    txt:'Janvier→août : ancien reporting, IDF. Le classeur porte le chantier, pas l’agence : elle vient de la table des chantiers, alimentée par les Vigiminutes.',
-    doute:{id:'vms-chantier',txt:'Une VMS sur un chantier que les Vigiminutes ne connaissent pas tombe en « non réparti » — à corriger dans 🗺 Chantiers.'}}],
-  [['accueilsAuto','accueils','accueilsEmb','accueilsInt'],{src:'Janvier→août : les 47 fiches d’accueil PDF transcrites · depuis sept. : registre Accueils (colonne Agence CDES)',dep:'sept. 2026',
-    txt:'Le registre distingue embauchés et intérimaires. Total = appli + papier.',
+  [['vms','vmsCd','vmsAd'],{src:'Saisie — par agence',
+    txt:'Nombre de VMS (en gras), conditions dangereuses (CD) et actes dangereux (AD), saisis pour les trois agences. Janvier→avril : ancien reporting, IDF. Le classeur VMS n’écrit plus ici.'}],
+  [['accueilsAuto','accueilsMan','accueils'],{src:'Digital : janvier→août les 47 fiches d’accueil PDF transcrites, depuis sept. le registre Accueils (colonne Agence CDES) · papier : saisie',dep:'sept. 2026',
+    txt:'Total = digital + papier, recalculé à chaque saisie. Le registre distingue embauchés et intérimaires : c’est ce qui pose les valeurs par défaut des nouveaux arrivants et intérimaires.',
     doute:{id:'juin-bpl',txt:'Juin BPL : 4 intérimaires rattachés à BPL d’après le lieu (Suscinio, Trignac), pas d’après une agence écrite — à confirmer. La case est marquée ⚠️ dans le tableau.'}}],
-  [['visites'],{src:'Classeur CR Observations — N° de CR distincts',dep:'sept. 2026',txt:'Avant : ancien reporting, IDF.',
-    doute:{id:'cr-agence',txt:'Les CR ne portent pas l’agence : les visites restent en « non réparti » pour l’instant.'}}]
+  [['visites'],{src:'Classeur CR Observations — visites distinctes (n° + date + chantier), agence via le chantier',dep:'sept. 2026',txt:'Avant : ancien reporting, IDF.',
+    doute:{id:'cr-agence',txt:'L’agence d’une visite vient du chantier (table des chantiers, alimentée par les Vigiminutes). Un chantier inconnu tombe en « non réparti » — à corriger dans 🗺 Chantiers.'}}]
 ];
 const NOTES_ECRAN = {
   'v-acc':[
@@ -957,12 +1032,11 @@ const NOTES_ECRAN = {
      doute:{id:'postes-fiches',txt:'Pas branché : le collecteur ne remonte pas le libellé du poste. Prévu, pas fait — à confirmer si tu y tiens.'}}
   ]
 };
-const DOUTES_CASES=[{k:'2026-06',ag:'BPL',champ:'accueilsInt',id:'juin-bpl',txt:'4 intérimaires rattachés à BPL d’après le lieu — à confirmer'}];
+const DOUTES_CASES=[{k:'2026-06',ag:'BPL',champ:'accueilsAuto',id:'juin-bpl',txt:'4 intérimaires rattachés à BPL d’après le lieu — à confirmer'}];
 function noteCol(k){
   const e=NOTES_COL.find(x=>x[0].indexOf(k)>=0);
   if(!e)return null;
-  const c=COLM.concat(COLM_AUTO).find(x=>x.k===k);
-  return Object.assign({t:c?c.t:k},e[1]);
+  return Object.assign({t:libCol(k)},e[1]);
 }
 function douteTexte(id){
   // un doute cité dans plusieurs écrans est écrit une seule fois : on va le chercher
@@ -977,8 +1051,7 @@ function marquerDoute(id,vu){
 }
 function notesDe(ecran){
   if(ecran==='v-mensuel'){
-    const tous=COLM.concat(COLM_AUTO);
-    return NOTES_COL.map(e=>Object.assign({t:e[0].map(k=>(tous.find(x=>x.k===k)||{t:k}).t).join(' · ')},e[1]));
+    return NOTES_COL.map(e=>Object.assign({t:e[0].map(libCol).join(' · ')},e[1]));
   }
   return NOTES_ECRAN[ecran]||[];
 }
@@ -1033,14 +1106,14 @@ function renderMensuel(){
   let h='<div class="barre"><h2>📅 Saisie mensuelle '+ANNEE+(lecture?'':' — '+esc(agLib(agence)))+'</h2>'+
     '<span class="p '+(lecture?'cyan':'gris')+'">'+(lecture
        ?'Vue Global : somme des agences, en lecture seule — choisis une agence pour saisir'
-       :'Les colonnes vertes se remplissent toutes seules')+'</span>'+
+       :'Une thématique par bloc — les cases 🤖 se remplissent toutes seules')+'</span>'+
     '<div class="droite"><button class="btn btn-ghost btn-sm" onclick="window.print()">🖨</button></div></div>';
   h+='<div class="legende-couleurs">'+
-    '<span class="lc auto">🤖 automatique</span>'+
+    '<span class="lc auto">🤖 automatique — depuis les outils</span>'+
     '<span class="lc defaut">par défaut — à vérifier</span>'+
     '<span class="lc acompleter">à compléter</span>'+
     '<span class="lc saisi">saisi</span>'+
-    '<span class="lc journal">compté depuis le journal</span>'+
+    '<span class="lc total">total calculé</span>'+
     '<span class="lc doute">⚠️ doute à trancher</span></div>';
   h+=panneauNotes('v-mensuel');
   h+='<div class="kpis" style="margin-bottom:14px">'+
@@ -1050,56 +1123,56 @@ function renderMensuel(){
     kpi(String(tf).replace('.',','),'Taux de fréquence')+
     kpi(String(tg).replace('.',','),'Taux de gravité')+'</div>';
   // en-tête cliquable : ℹ ouvre la note de la colonne, ⚠️ signale un doute pas encore vu
-  const th=(c,style)=>{const nt=noteCol(c.k), d=nt&&nt.doute&&!douteVu(nt.doute.id);
-    return '<th style="text-align:right;'+(style||'')+'">'+(nt
-      ?'<button class="thn'+(d?' doute':'')+'" onclick="voirNote(\''+c.k+'\')" title="'+esc(nt.src||'')+(d?' — ⚠️ un doute à trancher':'')+'">'+esc(c.t)+'<i>'+(d?'⚠️':'ℹ')+'</i></button>'
-      :esc(c.t))+'</th>'};
-  h+='<div class="card"><div class="tbl-scroll"><table class="uni"><thead><tr><th>Mois</th>'+
-     COLM.map(c=>th(c)).join('')+
-     '<th style="text-align:right">% Vigi</th>'+
-     COLM_AUTO.map(c=>th(c,'color:#a9e8c6')).join('')+
-     '<th style="text-align:right">% QHP</th></tr></thead><tbody>';
+  const th=c=>{const nt=noteCol(c.k), d=nt&&nt.doute&&!douteVu(nt.doute.id);
+    const cls=['g-'+c.g,c.large?'heures':'',c.petit?'petit':'',c.calc?'calc':''].filter(Boolean).join(' ');
+    return '<th class="'+cls+'" style="text-align:right">'+(nt
+      ?'<button class="thn'+(d?' doute':'')+'" onclick="voirNote(\''+c.k+'\')" title="'+esc((c.tt?c.tt+' — ':'')+(nt.src||''))+(d?' — ⚠️ un doute à trancher':'')+'">'+esc(c.t)+'<i>'+(d?'⚠️':'ℹ')+'</i></button>'
+      :'<span'+(c.tt?' title="'+esc(c.tt)+'"':'')+'>'+esc(c.t)+'</span>')+'</th>'};
+  // ligne des thématiques : une cellule fusionnée par groupe, dans sa couleur
+  let grp='';
+  GROUPES.forEach(g=>{const nb=COLS.filter(c=>c.g===g.id).length;
+    grp+='<th class="grp g-'+g.id+'" colspan="'+nb+'" style="--gc:'+g.c+'">'+esc(g.t)+'</th>'});
+  h+='<div class="card"><div class="tbl-scroll"><table class="uni mensuel"><thead>'+
+     '<tr class="grps"><th></th>'+grp+'</tr>'+
+     '<tr><th>Mois</th>'+COLS.map(th).join('')+'</tr></thead><tbody>';
+  const fmt=v=>(v===undefined||v===''||v===null)?'—':(isNaN(Number(v))?esc(String(v)):Number(v).toLocaleString('fr-FR'));
+  const pct=(m,c)=>{const a=n(m[c.calc[1]]);return a?Math.round(n(m[c.calc[0]])/a*100)+' %':'—'};
   rows.forEach(m=>{
     h+='<tr><td><b>'+MOIS_L[Number(m.k.slice(5,7))-1]+'</b></td>';
-    const fmt=v=>(v===undefined||v==='')?'—':(isNaN(Number(v))?esc(String(v)):Number(v).toLocaleString('fr-FR'));
-    const apres=apresBascule(m.k);
-    COLM.forEach(c=>{
-      // après la bascule, l'accidentologie vient du journal : plus de saisie
-      const gele=c.journal&&apres;
-      // les colonnes « papier » n'existent qu'après la bascule
-      if(c.apres&&!apres){h+='<td class="num muted">·</td>';return}
+    COLS.forEach(c=>{
+      const mode=modeCase(c,m.k);
+      const base='g-'+c.g+(c.petit?' petit':'')+(c.large?' heures':'');
+      const d=douteCase(m.k,c.k);   // ⚠️ une case dont je ne suis pas sûr
+      const flag=d?'<i>⚠️</i>':'';
+      const dAttr=d?' title="'+esc(d.txt)+'"':'';
+      if(mode==='calc'){h+='<td class="calc '+base+'">'+pct(m,c)+'</td>';return}
+      if(mode==='total'){h+='<td class="num total '+base+(d?' doute':'')+'"'+dAttr+'><b>'+fmt(m[c.k])+'</b>'+flag+'</td>';return}
+      if(mode==='auto'){
+        // 🤖 : la case vient d'un outil — vide tant que la date n'est pas passée ou que la collecte n'a pas tourné
+        const src=c.journal?'Compté depuis le journal d’analyses d’accident':'Recopié depuis '+esc(sourceAuto(c));
+        h+='<td class="num auto '+base+(d?' doute':'')+'" title="'+(d?esc(d.txt):src)+'">'+fmt(m[c.k])+'<i>🤖</i>'+flag+'</td>';return}
+      // saisie
       const vide=(m[c.k]===undefined||m[c.k]==='');
       const def=estDefaut(m,c.k);
-      // code couleur : 🤖 automatique · 🟠 par défaut, à vérifier · ⚪ à compléter · saisi
+      // code couleur : 🟠 par défaut, à vérifier · ⚪ à compléter · saisi
       const cls=def?'defaut':(vide?'acompleter':'saisi');
-      const titre=def?'Valeur par défaut'+(c.defautDe?' (= '+esc((COLM_AUTO.find(x=>x.k===c.defautDe)||{}).t||c.defautDe)+')':'')+' — à vérifier, saisir pour confirmer'
+      const titre=def?'Valeur par défaut'+(c.defautDe?' (= '+esc(libCol(c.defautDe))+')':' (ancien reporting 2026)')+' — à vérifier, saisir pour confirmer'
                  :(vide?'À compléter':'');
-      h+=(lecture||gele)
-      ?'<td class="num'+(gele?' journal':'')+'"'+(gele?' title="Compté depuis le journal d’analyses d’accident"':'')+'>'+fmt(m[c.k])+(gele?'<i>🤖</i>':'')+'</td>'
-      :'<td class="'+cls+'"><input class="'+cls+'" inputmode="decimal" title="'+titre+'" value="'+(vide?'':esc(m[c.k]))+'" onchange="majMois(\''+m.k+'\',\''+c.k+'\',this.value)"></td>'});
-    const pv=n(m.vigiAtt)?Math.round(n(m.vigiRecu)/n(m.vigiAtt)*100):null;
-    h+='<td class="calc">'+(pv===null?'—':pv+' %')+'</td>';
-    COLM_AUTO.forEach(c=>{
-      const d=douteCase(m.k,c.k);   // ⚠️ une case dont je ne suis pas sûr
-      const attrs=(d?' class="doute" title="'+esc(d.txt)+'"':''), flag=(d?'<i>⚠️</i>':'');
-      h+=(lecture||c.total)
-      ?'<td class="num'+(d?' doute':'')+'" style="color:#a9e8c6"'+(d?' title="'+esc(d.txt)+'"':'')+'>'+fmt(m[c.k])+flag+'</td>'
-      :'<td'+attrs+'><input class="auto" inputmode="decimal" value="'+(m[c.k]===undefined?'':esc(m[c.k]))+'" onchange="majMois(\''+m.k+'\',\''+c.k+'\',this.value)">'+flag+'</td>'});
-    const pq=n(m.qhpEff)?Math.round(n(m.qhpPart)/n(m.qhpEff)*100):null;
-    h+='<td class="calc">'+(pq===null?'—':pq+' %')+'</td></tr>';
+      if(lecture){h+='<td class="num '+base+(def?' defaut':'')+'">'+(c.gras?'<b>'+fmt(m[c.k])+'</b>':fmt(m[c.k]))+'</td>';return}
+      h+='<td class="'+cls+' '+base+(d?' doute':'')+'"'+dAttr+'><input class="'+cls+(c.gras?' gras':'')+'" inputmode="decimal" title="'+(d?esc(d.txt):titre)+'" value="'+(vide?'':esc(m[c.k]))+'" onchange="majMois(\''+m.k+'\',\''+c.k+'\',this.value)">'+flag+'</td>';
+    });
+    h+='</tr>';
   });
-  h+='<tr style="background:rgba(42,109,176,.25)"><td><b>TOTAL</b></td>';
-  COLM.forEach(c=>{h+='<td class="num"><b>'+(S(c.k)||0).toLocaleString('fr-FR')+'</b></td>'});
-  const pvT=S('vigiAtt')?Math.round(S('vigiRecu')/S('vigiAtt')*100):null;
-  h+='<td class="calc">'+(pvT===null?'—':pvT+' %')+'</td>';
-  COLM_AUTO.forEach(c=>{h+='<td class="num"><b>'+(S(c.k)||0).toLocaleString('fr-FR')+'</b></td>'});
-  const pqT=S('qhpEff')?Math.round(S('qhpPart')/S('qhpEff')*100):null;
-  h+='<td class="calc">'+(pqT===null?'—':pqT+' %')+'</td></tr>';
-  h+='</tbody></table></div>';
-  h+='<p class="hint" style="margin-top:10px">🟢 Les colonnes vertes sont recopiées depuis tes outils — Vigiminutes (synthèse mensuelle), QHP, VMS, accueils, visites, fiches de formation. '+
-    'Depuis <b>'+esc(MOIS_L[Number(BASCULE.slice(5,7))-1]+' '+BASCULE.slice(0,4))+'</b> (la bascule), l’accidentologie 🤖 est comptée depuis le journal d’analyses d’accident et les accueils / fiches '+
-    'de formation ont une colonne <b>papier</b> pour ce que les conducteurs remplissent à la main. Avant la bascule, c’est l’ancien reporting 2026 qui fait foi, rattaché à '+esc(AGENCE_HISTO)+'. '+
-    'À toi : les heures, l’effectif, les jours d’arrêt, les maladies pro (0 par défaut), les nouveaux arrivants, les déchets.</p></div>';
+  h+='<tr class="tot"><td><b>TOTAL</b></td>';
+  COLS.forEach(c=>{
+    if(c.calc){const a=S(c.calc[1]);h+='<td class="calc g-'+c.g+'">'+(a?Math.round(S(c.calc[0])/a*100)+' %':'—')+'</td>';return}
+    h+='<td class="num g-'+c.g+(c.petit?' petit':'')+'"><b>'+(S(c.k)||0).toLocaleString('fr-FR')+'</b></td>'});
+  h+='</tr></tbody></table></div>';
+  const moisL=k=>MOIS_L[Number(k.slice(5,7))-1]+' '+k.slice(0,4);
+  h+='<p class="hint" style="margin-top:10px">🤖 Une case robot vient d’un outil : QHP, accueils et fiches de formation digitales, visites (CR) et accidentologie (journal d’analyses) depuis <b>'+esc(moisL(BASCULE))+'</b> ; '+
+    'Vigiminutes depuis <b>'+esc(moisL(VIGI_AUTO))+'</b> (classeur Reporting Vigiminutes, par agence). Elle reste vide (—) tant que le mois n’est pas passé ou que la collecte de nuit n’a pas tourné. '+
+    'Avant ces dates, tout se saisit ici — les chiffres de l’ancien reporting 2026 sont rattachés à '+esc(AGENCE_HISTO)+', en orange quand ils sont posés par défaut. '+
+    'Toujours à toi : heures, effectif, jours d’arrêt, maladies pro (0 par défaut), VMS (nb, CD, AD), nouveaux arrivants, accueils et fiches papier, déchets.</p></div>';
   document.getElementById('v-mensuel').innerHTML=h;
 }
 /* ---------- valeurs par défaut, à vérifier ----------
@@ -1125,10 +1198,10 @@ function poserDefauts(m){
   });
   m.defauts=d;
 }
-/* accueils et formations : total = automatique + papier, sur les mois d'après bascule */
+/* accueils et formations : total = digital + papier, tous les mois (avant la bascule le
+   digital est saisi, après il vient du registre) */
 function totauxMois(m){
-  if(!apresBascule(m.k))return;
-  [['accueils','accueilsAuto','accueilsMan'],['formations','formationsAuto','formationsMan']].forEach(t=>{
+  COLS.filter(c=>c.total).forEach(c=>{const t=[c.k].concat(c.total);
     const a=m[t[1]],b=m[t[2]];
     if((a===undefined||a==='')&&(b===undefined||b===''))return;
     m[t[0]]=n(a)+n(b);
@@ -1863,6 +1936,7 @@ function appliquer(d){
   ['mensuel','incidents','remontees','se','objectifs','chantiers'].forEach(k=>{if(Array.isArray(d[k]))state[k]=d[k]});
   if(d.bascule&&/^\d{4}-\d{2}$/.test(d.bascule))BASCULE=d.bascule;
   if(d.agenceHistorique)AGENCE_HISTO=d.agenceHistorique;
+  if(d.vigiAuto&&/^\d{4}-\d{2}$/.test(d.vigiAuto))VIGI_AUTO=d.vigiAuto;
   if(d.params&&typeof d.params==='object')state.params=Object.assign({},state.params,d.params);
   save();
 }
