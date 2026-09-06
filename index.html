@@ -975,9 +975,9 @@ const NOTES_COL = [
   [['effectif'],{src:'Paie — exports « occupation » : présents dans le mois (congés compris)',
     txt:'Même règle que les heures : janvier→juin, l’effectif de l’ancien reporting est conservé, NA et BPL comptés depuis les exports (+ DUBESSET jusqu’en juillet), IDF = le reste. Juillet→août : IDF depuis les exports, en orange.',
     doute:{id:'effectif-auto',txt:'Le roster QHP porte l’agence de chaque personne : je peux l’automatiser si tu veux — dis-le moi.'}}],
-  [['accArret','accSans','benins','trajet'],{src:'Journal d’analyses d’accident',dep:'sept. 2026',
-    txt:'Comptés par mois et par agence depuis la bascule — plus de saisie. Avant : ancien reporting, IDF.',
-    doute:{id:'ag-trame',txt:'L’agence d’un AT vient du chantier tant que la trame d’analyse d’accident ne la porte pas : à ajouter dans la trame (une case Agence). En attendant, un chantier inconnu tombe en « non réparti ».'}}],
+  [['accArret','accSans','benins','trajet'],{src:'Journal d’analyses d’accident — onglet ACCIDENTS (agence, date, type, zone, jours d’arrêt…)',dep:'sept. 2026',
+    txt:'Comptés par mois et par agence depuis la bascule — plus de saisie. L’agence, la date et le type viennent de la fiche ACCIDENTS ; les actions RETEX s’y rattachent par la personne. Avant : ancien reporting, IDF ; juillet-août comptés depuis les fiches, en orange.',
+    doute:{id:'acc-doublon',txt:'Quentin BOUCQ (07/07) est saisi deux fois dans l’onglet ACCIDENTS (rapports AA-AA-2026-0722 et -0906) : j’en fais une seule fiche, complétée par les deux. Supprime la ligne en trop si tu veux un journal propre.'}}],
   [['joursArret'],{src:'Saisie',txt:'Le journal d’analyses ne les donne pas : à saisir.'}],
   [['mp'],{src:'Saisie',txt:'0 par défaut chaque mois. Affiché dans Santé sur l’intranet.'}],
   [['arrivants'],{src:'Saisie — par défaut = accueils d’embauchés',
@@ -1003,9 +1003,10 @@ const NOTES_ECRAN = {
   'v-acc':[
     {t:'Incidents',src:'Journal d’analyses d’accident',dep:'données 2026',
      txt:'Créés automatiquement, dédoublonnés sur date + chantier + personne. Un incident supprimé ici ne revient pas.',
-     doute:{id:'acc-completer',txt:'Le journal ne donne ni la zone lésée, ni la typologie, ni la cause fondamentale : à compléter ici, sinon le bonhomme et les typologies restent vides. Le % d’événements analysés compte les fiches avec un arbre des causes ou typologie + cause.'}},
-    {t:'Agence d’un incident',src:'Chantier → table des chantiers (Vigiminutes)',
-     doute:{id:'ag-trame'}},
+     doute:{id:'acc-completer',txt:'La fiche ACCIDENTS ne porte ni la typologie de risque ni la cause fondamentale : les fiches créées depuis l’onglet sans rapport d’analyse (BOUCQ 07/07, CLEMENT 10/04) restent à compléter ici. LE KERNEAU, THOREL et DUPONT sont remplis depuis leurs rapports d’analyse. Le % d’événements analysés compte les fiches avec un arbre des causes ou typologie + cause.'}},
+    {t:'Agence d’un incident',src:'Colonne Agence de l’onglet ACCIDENTS ; sinon le chantier (table des chantiers)',
+     txt:'La fiche complète ce qui est vide dans l’appli (zone, blessure, HIPO, jours d’arrêt…) sans jamais écraser ce que tu as corrigé ici.',
+     doute:{id:'acc-doublon'}},
     {t:'Actions correctives : total, faites, en retard',src:'Journal d’analyses (actions rattachées)',dep:'données 2026',txt:'Plus aucune saisie.'}
   ],
   'v-rem':[
