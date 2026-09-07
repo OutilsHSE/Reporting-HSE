@@ -755,6 +755,7 @@ function load(){
   if(!state.params)state.params={};
   try{const c=localStorage.getItem(LS_CONF);if(c)conf=Object.assign(conf,JSON.parse(c))}catch(e){}
   if(!state.mensuel.length&&!state.incidents.length&&!state._touche)semer();
+  if(normaliserMensuel())save();
 }
 function save(){state._touche=true;try{localStorage.setItem(LS,JSON.stringify(state))}catch(e){toast('Mémoire pleine',true)}}
 function saveConf(){try{localStorage.setItem(LS_CONF,JSON.stringify(conf))}catch(e){}}
@@ -778,7 +779,7 @@ function moisLigne(k,ag){
   return m;
 }
 const COLS_SOMME=['heures','effectif','accArret','accSans','benins','trajet','joursArret','mp',
-  'vms','vmsCd','vmsAd','dechetsT','accueilsAuto','accueilsMan','accueils','accueilsEmb','accueilsInt',
+  'vmsAuto','vmsMan','vms','vmsCd','vmsAd','dechetsT','accueilsAuto','accueilsMan','accueils','accueilsEmb','accueilsInt',
   'arrivants','interimaires','visites',
   'vigiAtt','vigiRecu','qhpEff','qhpPart','formationsAuto','formationsMan','formations'];
 /* vue Global d'un mois : la somme des agences, calculée, jamais stockée */
@@ -933,8 +934,10 @@ const COLS=[
   {k:'pq',t:'% QHP',g:'anim',calc:['qhpPart','qhpEff']},
   {k:'vigiAtt',t:'Vigi. attendues',g:'anim',auto:'vigi'},{k:'vigiRecu',t:'Vigi. reçues',g:'anim',auto:'vigi'},
   {k:'pv',t:'% Vigi',g:'anim',calc:['vigiRecu','vigiAtt']},
-  {k:'vms',t:'VMS',g:'anim',gras:true},{k:'vmsCd',t:'CD',tt:'VMS · conditions dangereuses',g:'anim',petit:true},
-  {k:'vmsAd',t:'AD',tt:'VMS · actes dangereux',g:'anim',petit:true},
+  {k:'vmsAuto',t:'VMS digital',g:'anim',auto:'bascule'},{k:'vmsMan',t:'VMS papier',g:'anim'},
+  {k:'vms',t:'VMS total',g:'anim',total:['vmsAuto','vmsMan'],gras:true},
+  {k:'vmsCd',t:'CD',tt:'VMS · conditions dangereuses',g:'anim',auto:'bascule',petit:true},
+  {k:'vmsAd',t:'AD',tt:'VMS · actes dangereux',g:'anim',auto:'bascule',petit:true},
   {k:'visites',t:'Visites (CR)',g:'anim',auto:'bascule'},
   {k:'arrivants',t:'Nouveaux arrivants',g:'arr',defautDe:'accueilsEmb'},
   {k:'interimaires',t:'Nouveaux intérimaires',g:'arr',defautDe:'accueilsInt'},
@@ -962,6 +965,7 @@ function sourceAuto(c){
   if(/^accueils/.test(c.k))return 'le registre des accueils';
   if(/^formations/.test(c.k))return 'le registre des fiches de formation';
   if(c.k==='visites')return 'le classeur CR Observations';
+  if(/^vms/.test(c.k))return 'le classeur VMS';
   return 'tes outils';
 }
 /* ---------- notes et doutes sur les indicateurs ----------
@@ -978,7 +982,8 @@ const NOTES_COL = [
   [['accArret','accSans','benins','trajet'],{src:'Journal d’analyses d’accident — onglet ACCIDENTS (agence, date, type, zone, jours d’arrêt…)',dep:'sept. 2026',
     txt:'Comptés par mois et par agence depuis la bascule — plus de saisie. L’agence, la date et le type viennent de la fiche ACCIDENTS ; les actions RETEX s’y rattachent par la personne. Avant : ancien reporting, IDF ; juillet-août comptés depuis les fiches, en orange.',
     doute:{id:'acc-doublon',txt:'Quentin BOUCQ (07/07) est saisi deux fois dans l’onglet ACCIDENTS (rapports AA-AA-2026-0722 et -0906) : j’en fais une seule fiche, complétée par les deux. Supprime la ligne en trop si tu veux un journal propre.'}}],
-  [['joursArret'],{src:'Saisie',txt:'Le journal d’analyses ne les donne pas : à saisir.'}],
+  [['joursArret'],{src:'Saisie',txt:'Le journal donne les jours d’arrêt par accident, pas par mois : à saisir (un arrêt qui court sur plusieurs mois se répartit à la main, ex. CLEMENT depuis le 10/04).',
+    doute:{id:'jours-double',txt:'Avril→juin affichaient le double (40 / 62 / 60) : une ligne « sans agence » de l’ancien format s’ajoutait à la ligne IDF dans le Global. Ces lignes sont maintenant versées dans IDF — vérifie que tu retrouves 20 / 31 / 30.'}}],
   [['mp'],{src:'Saisie',txt:'0 par défaut chaque mois. Affiché dans Santé sur l’intranet.'}],
   [['arrivants'],{src:'Saisie — par défaut = accueils d’embauchés',
     txt:'Embauchés + stagiaires + alternants. Posé automatiquement depuis les accueils, orange tant que tu ne l’as pas saisi ; une saisie le confirme et n’est jamais écrasée.'}],
@@ -991,13 +996,14 @@ const NOTES_COL = [
   [['qhpEff','qhpPart'],{src:'Janvier→août : ancien reporting 2026 sur IDF · depuis septembre : appli Suivi QHP (roster + présences), par agence',dep:'sept. 2026',
     txt:'Juin→août ne sont pas dans l’ancien reporting : à compléter à la main. Depuis septembre, l’effectif et les participants de chaque agence viennent de l’agence portée par le roster.',
     doute:{id:'qhp-fige',txt:'La propriété QHP_FIGE_JUSQUA ne sert plus (la bascule la remplace) : si tu l’avais posée dans le script, tu peux la retirer.'}}],
-  [['vms','vmsCd','vmsAd'],{src:'Saisie — par agence',
-    txt:'Nombre de VMS (en gras), conditions dangereuses (CD) et actes dangereux (AD), saisis pour les trois agences. Janvier→avril : ancien reporting, IDF. Le classeur VMS n’écrit plus ici.'}],
+  [['vmsAuto','vmsMan','vms','vmsCd','vmsAd'],{src:'Digital : classeur VMS (une ligne par observation, colonne Agence) depuis sept., saisie avant · papier : saisie · CD / AD : classeur VMS depuis sept.',dep:'sept. 2026',
+    txt:'Même mécanique que les accueils : total (en gras) = digital + papier. Une visite = un n° de VMS ; CD et AD comptent les observations « Condition dangereuse » / « Acte dangereux » de l’appli, par agence (colonne Agence, sinon le chantier). Janvier→août : tes VMS saisies sont passées en digital.',
+    doute:{id:'vms-papier-cdad',txt:'Les CD / AD des VMS papier ne sont comptées nulle part : dis-moi si tu veux aussi une colonne papier pour elles.'}}],
   [['accueilsAuto','accueilsMan','accueils'],{src:'Digital : janvier→août les 47 fiches d’accueil PDF transcrites, depuis sept. le registre Accueils (colonne Agence CDES) · papier : saisie',dep:'sept. 2026',
     txt:'Total = digital + papier, recalculé à chaque saisie. Le registre distingue embauchés et intérimaires : c’est ce qui pose les valeurs par défaut des nouveaux arrivants et intérimaires.',
     doute:{id:'juin-bpl',txt:'Juin BPL : 4 intérimaires rattachés à BPL d’après le lieu (Suscinio, Trignac), pas d’après une agence écrite — à confirmer. La case est marquée ⚠️ dans le tableau.'}}],
-  [['visites'],{src:'Classeur CR Observations — visites distinctes (n° + date + chantier), agence via le chantier',dep:'sept. 2026',txt:'Avant : ancien reporting, IDF.',
-    doute:{id:'cr-agence',txt:'L’agence d’une visite vient du chantier (table des chantiers, alimentée par les Vigiminutes). Un chantier inconnu tombe en « non réparti » — à corriger dans 🗺 Chantiers.'}}]
+  [['visites'],{src:'Classeur CR Observations — visites distinctes (n° + date + chantier), colonne Agence du classeur, sinon le chantier',dep:'sept. 2026',txt:'Avant : ancien reporting, IDF.',
+    doute:{id:'cr-agence',txt:'Ta colonne Agence est encore vide sur les CR déjà saisis : tant qu’elle l’est, l’agence vient du chantier (table des chantiers, alimentée par les Vigiminutes) ; un chantier inconnu tombe en « non réparti » — à corriger dans 🗺 Chantiers ou dans la colonne.'}}]
 ];
 const NOTES_ECRAN = {
   'v-acc':[
@@ -1173,10 +1179,10 @@ function renderMensuel(){
     h+='<td class="num g-'+c.g+(c.petit?' petit':'')+'"><b>'+(S(c.k)||0).toLocaleString('fr-FR')+'</b></td>'});
   h+='</tr></tbody></table></div>';
   const moisL=k=>MOIS_L[Number(k.slice(5,7))-1]+' '+k.slice(0,4);
-  h+='<p class="hint" style="margin-top:10px">🤖 Une case robot vient d’un outil : QHP, accueils et fiches de formation digitales, visites (CR) et accidentologie (journal d’analyses) depuis <b>'+esc(moisL(BASCULE))+'</b> ; '+
+  h+='<p class="hint" style="margin-top:10px">🤖 Une case robot vient d’un outil : QHP, accueils et fiches de formation digitales, VMS digitales (avec CD / AD), visites (CR) et accidentologie (journal d’analyses) depuis <b>'+esc(moisL(BASCULE))+'</b> ; '+
     'Vigiminutes depuis <b>'+esc(moisL(VIGI_AUTO))+'</b> (classeur Reporting Vigiminutes, par agence). Elle reste vide (—) tant que le mois n’est pas passé ou que la collecte de nuit n’a pas tourné. '+
     'Avant ces dates, tout se saisit ici — les chiffres de l’ancien reporting 2026 sont rattachés à '+esc(AGENCE_HISTO)+', en orange quand ils sont posés par défaut. '+
-    'Toujours à toi : heures, effectif, jours d’arrêt, maladies pro (0 par défaut), VMS (nb, CD, AD), nouveaux arrivants, accueils et fiches papier, déchets.</p></div>';
+    'Toujours à toi : heures, effectif, jours d’arrêt, maladies pro (0 par défaut), VMS papier, nouveaux arrivants, accueils et fiches papier, déchets.</p></div>';
   document.getElementById('v-mensuel').innerHTML=h;
 }
 /* ---------- valeurs par défaut, à vérifier ----------
@@ -1202,8 +1208,36 @@ function poserDefauts(m){
   });
   m.defauts=d;
 }
-/* accueils et formations : total = digital + papier, tous les mois (avant la bascule le
-   digital est saisi, après il vient du registre) */
+/* Remise d'aplomb du mensuel après chargement, synchro ou restauration :
+   – une ligne SANS agence d'avant la bascule (ancien format) est versée dans l'agence
+     historique — règle de Justin : l'historique est IDF. Une case vide y reçoit la valeur,
+     une case déjà renseignée est gardée. Sinon elle s'ajoutait à la ligne IDF dans le Global
+     et doublait les chiffres (40 jours d'arrêt en avril au lieu de 20) ;
+   – VMS : l'ancienne colonne unique « vms » devient le digital quand ni digital ni papier
+     n'est renseigné, puis le total est recalculé. */
+function normaliserMensuel(){
+  const histo=AGENCE_HISTO||'IDF';
+  const parKA={},garde=[];let change=false;
+  const vide=v=>v===undefined||v===null||v==='';
+  state.mensuel.forEach(m=>{if(m.agence)parKA[m.k+'|'+m.agence]=m});
+  state.mensuel.forEach(m=>{
+    if(m.agence||!/^\d{4}-\d{2}$/.test(String(m.k))||apresBascule(m.k)){garde.push(m);return}
+    const cible=parKA[m.k+'|'+histo];
+    change=true;
+    if(!cible){m.agence=histo;parKA[m.k+'|'+histo]=m;garde.push(m);return}
+    Object.keys(m).forEach(c=>{if(['k','agence','maj','defauts'].indexOf(c)>=0)return;if(vide(cible[c])&&!vide(m[c]))cible[c]=m[c]});
+    const dC=defautsDe(cible).slice();defautsDe(m).forEach(d=>{if(dC.indexOf(d)<0&&cible[d]===m[d])dC.push(d)});cible.defauts=dC;
+    if(String(m.maj||'')>String(cible.maj||''))cible.maj=m.maj;
+  });
+  if(change)state.mensuel=garde;
+  state.mensuel.forEach(m=>{
+    if(vide(m.vmsAuto)&&vide(m.vmsMan)&&!vide(m.vms)){m.vmsAuto=n(m.vms);m.maj=nowISO();change=true}
+    const avant=m.vms;totauxMois(m);if(String(avant)!==String(m.vms)){m.maj=nowISO();change=true}
+  });
+  return change;
+}
+/* accueils, formations et VMS : total = digital + papier, tous les mois (avant la bascule le
+   digital est saisi, après il vient des outils) */
 function totauxMois(m){
   COLS.filter(c=>c.total).forEach(c=>{const t=[c.k].concat(c.total);
     const a=m[t[1]],b=m[t[2]];
@@ -1942,6 +1976,7 @@ function appliquer(d){
   if(d.agenceHistorique)AGENCE_HISTO=d.agenceHistorique;
   if(d.vigiAuto&&/^\d{4}-\d{2}$/.test(d.vigiAuto))VIGI_AUTO=d.vigiAuto;
   if(d.params&&typeof d.params==='object')state.params=Object.assign({},state.params,d.params);
+  normaliserMensuel();
   save();
 }
 async function syncNow(manuel){
@@ -2160,6 +2195,7 @@ function restaurerDepuisTexte(txt, provenance){
   // un import sans « params » (ex. l'import 2026) ne doit pas casser Réglages : on garde les réglages actuels
   state=Object.assign({mensuel:[],incidents:[],remontees:[],se:[],objectifs:[],chantiers:[],tomb:{},params:state.params||{}},st);
   if(!state.params||typeof state.params!=='object')state.params={};
+  normaliserMensuel();
   save();
   // le réaffichage vient APRÈS l'enregistrement : s'il échoue, les données sont déjà en lieu sûr
   try{ renderAgences(); go(vue); }
