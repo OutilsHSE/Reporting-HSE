@@ -781,7 +781,8 @@ function moisLigne(k,ag){
 const COLS_SOMME=['heures','effectif','accArret','accSans','benins','trajet','joursArret','mp',
   'vmsAuto','vmsMan','vms','vmsCd','vmsAd','dechetsT','accueilsAuto','accueilsMan','accueils','accueilsEmb','accueilsInt',
   'arrivants','interimaires','visites',
-  'vigiAtt','vigiRecu','qhpEff','qhpPart','formationsAuto','formationsMan','formations'];
+  'vigiAtt','vigiRecu','qhpEff','qhpPart','formationsAuto','formationsMan','formations',
+  'prets','pretsEnCours'];
 /* vue Global d'un mois : la somme des agences, calculée, jamais stockée */
 function moisSomme(k){
   const l=state.mensuel.filter(x=>x.k===k);
@@ -923,6 +924,7 @@ const GROUPES=[
   {id:'acc',  t:'Accidentologie',     c:'#ff8f85'},
   {id:'anim', t:'Animation HSE',      c:'#ffcf5c'},
   {id:'arr',  t:'Nouveaux arrivants', c:'#a9e8c6'},
+  {id:'mat',  t:'Matériel prêté',     c:'#8fd3c8'},
   {id:'env',  t:'Environnement',      c:'#c4a6f0'}
 ];
 const COLS=[
@@ -945,6 +947,8 @@ const COLS=[
   {k:'accueils',t:'Accueils total',g:'arr',total:['accueilsAuto','accueilsMan'],gras:true},
   {k:'formationsAuto',t:'Fiches formation digital',g:'arr',auto:'bascule'},{k:'formationsMan',t:'Fiches formation papier',g:'arr'},
   {k:'formations',t:'Fiches formation total',g:'arr',total:['formationsAuto','formationsMan'],gras:true},
+  {k:'prets',t:'Prêts remis',tt:'Prêts de matériel remis dans le mois',g:'mat',auto:'bascule'},
+  {k:'pretsEnCours',t:'Encore dehors',tt:'Engins encore chez un emprunteur à la fin du mois',g:'mat',auto:'bascule',etat:true},
   {k:'dechetsT',t:'Déchets (t)',g:'env'},{k:'dechetsVal',t:'Valorisé (%)',g:'env'}
 ];
 // compatibilité : COLM = colonnes saisissables, COLM_AUTO = colonnes qui viennent des outils
@@ -966,6 +970,7 @@ function sourceAuto(c){
   if(/^formations/.test(c.k))return 'le registre des fiches de formation';
   if(c.k==='visites')return 'le classeur CR Observations';
   if(/^vms/.test(c.k))return 'le classeur VMS';
+  if(/^pret/.test(c.k))return 'le classeur des prêts de matériel';
   return 'tes outils';
 }
 /* ---------- notes et doutes sur les indicateurs ----------
@@ -998,12 +1003,15 @@ const NOTES_COL = [
     doute:{id:'qhp-fige',txt:'La propriété QHP_FIGE_JUSQUA ne sert plus (la bascule la remplace) : si tu l’avais posée dans le script, tu peux la retirer.'}}],
   [['vmsAuto','vmsMan','vms','vmsCd','vmsAd'],{src:'Digital : classeur VMS (une ligne par observation, colonne Agence) depuis sept., saisie avant · papier : saisie · CD / AD : classeur VMS depuis sept.',dep:'sept. 2026',
     txt:'Même mécanique que les accueils : total (en gras) = digital + papier. Une visite = un n° de VMS ; CD et AD comptent les observations « Condition dangereuse » / « Acte dangereux » de l’appli, par agence (colonne Agence, sinon le chantier). Janvier→août : tes VMS saisies sont passées en digital.',
-    doute:{id:'vms-papier-cdad',txt:'Les CD / AD des VMS papier ne sont comptées nulle part : dis-moi si tu veux aussi une colonne papier pour elles.'}}],
+    doute:{id:'vms-aout-na',txt:'Tes VMS de juillet-août sont remises (Sarcelles 27/07 : 6 CD, 3 AD ; Tourbière de Pérols-sur-Vézère 28/08 : 2 CD), sur IDF comme tu les avais saisies. Celle du 28/08 (pilote Régis, Corrèze) est sans doute NA : la case porte un ⚠️. Les CD / AD des VMS papier ne sont comptées nulle part — dis-moi si tu veux aussi une colonne papier pour elles.'}}],
   [['accueilsAuto','accueilsMan','accueils'],{src:'Digital : janvier→août les 47 fiches d’accueil PDF transcrites, depuis sept. le registre Accueils (colonne Agence CDES) · papier : saisie',dep:'sept. 2026',
     txt:'Total = digital + papier, recalculé à chaque saisie. Le registre distingue embauchés et intérimaires : c’est ce qui pose les valeurs par défaut des nouveaux arrivants et intérimaires.',
     doute:{id:'juin-bpl',txt:'Juin BPL : 4 intérimaires rattachés à BPL d’après le lieu (Suscinio, Trignac), pas d’après une agence écrite — à confirmer. La case est marquée ⚠️ dans le tableau.'}}],
   [['visites'],{src:'Classeur CR Observations — visites distinctes (n° + date + chantier), colonne Agence du classeur, sinon le chantier',dep:'sept. 2026',txt:'Avant : ancien reporting, IDF.',
-    doute:{id:'cr-agence',txt:'Ta colonne Agence est encore vide sur les CR déjà saisis : tant qu’elle l’est, l’agence vient du chantier (table des chantiers, alimentée par les Vigiminutes) ; un chantier inconnu tombe en « non réparti » — à corriger dans 🗺 Chantiers ou dans la colonne.'}}]
+    doute:{id:'cr-agence',txt:'Ta colonne Agence est encore vide sur les CR déjà saisis : tant qu’elle l’est, l’agence vient du chantier (table des chantiers, alimentée par les Vigiminutes) ; un chantier inconnu tombe en « non réparti » — à corriger dans 🗺 Chantiers ou dans la colonne.'}}],
+  [['prets','pretsEnCours'],{src:'Appli Prêt de matériel — classeur des prêts (colonne Agence, sinon le chantier)',dep:'sept. 2026',
+    txt:'« Prêts remis » compte les mises à disposition du mois, à la date de REMISE de l’engin — pas à la date où la convention a été préparée. « Encore dehors » est un état de fin de mois : les engins remis et pas encore restitués. C’est une photo, pas un cumul : on ne l’additionne jamais d’un mois sur l’autre.',
+    doute:{id:'pret-remise',txt:'Un prêt préparé au bureau mais jamais remis n’est compté nulle part, et un prêt remis puis jamais clôturé restera « dehors » indéfiniment. Si tu vois un engin qui traîne, c’est la date de restitution qui manque dans l’outil de prêt. Dis-moi si tu préfères compter à la date de début de convention plutôt qu’à la remise.'}}]
 ];
 const NOTES_ECRAN = {
   'v-acc':[
@@ -1042,7 +1050,8 @@ const NOTES_ECRAN = {
      doute:{id:'postes-fiches',txt:'Pas branché : le collecteur ne remonte pas le libellé du poste. Prévu, pas fait — à confirmer si tu y tiens.'}}
   ]
 };
-const DOUTES_CASES=[{k:'2026-06',ag:'BPL',champ:'accueilsAuto',id:'juin-bpl',txt:'4 intérimaires rattachés à BPL d’après le lieu — à confirmer'}];
+const DOUTES_CASES=[{k:'2026-06',ag:'BPL',champ:'accueilsAuto',id:'juin-bpl',txt:'4 intérimaires rattachés à BPL d’après le lieu — à confirmer'},
+  {k:'2026-08',ag:'IDF',champ:'vmsAuto',id:'vms-aout-na',txt:'VMS du 28/08 à la Tourbière de Pérols-sur-Vézère (pilote Régis) : NA plutôt qu’IDF ?'}];
 function noteCol(k){
   const e=NOTES_COL.find(x=>x[0].indexOf(k)>=0);
   if(!e)return null;
@@ -1176,6 +1185,9 @@ function renderMensuel(){
   h+='<tr class="tot"><td><b>TOTAL</b></td>';
   COLS.forEach(c=>{
     if(c.calc){const a=S(c.calc[1]);h+='<td class="calc g-'+c.g+'">'+(a?Math.round(S(c.calc[0])/a*100)+' %':'—')+'</td>';return}
+    /* une colonne d'ÉTAT (ce qui est dehors à la fin du mois) ne s'additionne pas :
+       la somme des douze photos ne veut rien dire. On renvoie au dernier mois. */
+    if(c.etat){h+='<td class="num g-'+c.g+'" title="Un état de fin de mois ne s’additionne pas : c’est la ligne du dernier mois qui compte.">—</td>';return}
     h+='<td class="num g-'+c.g+(c.petit?' petit':'')+'"><b>'+(S(c.k)||0).toLocaleString('fr-FR')+'</b></td>'});
   h+='</tr></tbody></table></div>';
   const moisL=k=>MOIS_L[Number(k.slice(5,7))-1]+' '+k.slice(0,4);
