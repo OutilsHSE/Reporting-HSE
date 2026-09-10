@@ -1010,8 +1010,8 @@ const NOTES_COL = [
   [['visites'],{src:'Classeur CR Observations — visites distinctes (n° + date + chantier), colonne Agence du classeur, sinon le chantier',dep:'sept. 2026',txt:'Avant : ancien reporting, IDF.',
     doute:{id:'cr-agence',txt:'Ta colonne Agence est encore vide sur les CR déjà saisis : tant qu’elle l’est, l’agence vient du chantier (table des chantiers, alimentée par les Vigiminutes) ; un chantier inconnu tombe en « non réparti » — à corriger dans 🗺 Chantiers ou dans la colonne.'}}],
   [['prets','pretsEnCours'],{src:'Appli Prêt de matériel — classeur des prêts (colonne Agence, sinon le chantier)',dep:'sept. 2026',
-    txt:'« Prêts remis » compte les mises à disposition du mois, à la date de REMISE de l’engin — pas à la date où la convention a été préparée. « Encore dehors » est un état de fin de mois : les engins remis et pas encore restitués. C’est une photo, pas un cumul : on ne l’additionne jamais d’un mois sur l’autre.',
-    doute:{id:'pret-remise',txt:'Un prêt préparé au bureau mais jamais remis n’est compté nulle part, et un prêt remis puis jamais clôturé restera « dehors » indéfiniment. Si tu vois un engin qui traîne, c’est la date de restitution qui manque dans l’outil de prêt. Dis-moi si tu préfères compter à la date de début de convention plutôt qu’à la remise.'}}]
+    txt:'« Prêts remis » compte les mises à disposition du mois, à la date de REMISE de l’engin — pas à la date où la convention a été préparée. « Encore dehors » est un état de fin de mois : les engins dont la période de mise à disposition court encore. C’est une photo, pas un cumul : on ne l’additionne jamais d’un mois sur l’autre.',
+    doute:{id:'pret-remise',txt:'Un prêt préparé au bureau mais jamais remis n’est compté nulle part : c’est voulu. Et comme personne ne saisit de date de restitution, un engin est réputé dehors jusqu’à la date de FIN de la convention — s’il rentre plus tôt, le compteur ne le sait pas, et s’il reste plus longtemps, il n’apparaît plus. Le chiffre dit donc « ce qui devrait être dehors », ce qui suffit pour suivre le volume.'}}]
 ];
 const NOTES_ECRAN = {
   'v-acc':[
