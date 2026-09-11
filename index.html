@@ -15,7 +15,7 @@
  *  Colle ci-dessous l'adresse /exec du script « Intranet HSE » — la même que
  *  celle de l'intranet : un seul classeur, une seule source.
  * ========================================================================= */
-const CONFIG = { WEBHOOK_URL: 'https://script.google.com/macros/s/AKfycbwTeRCRAdexpa_yHuMoQ0RLx3E4pB8pJw4fybUhuPyMiSd6L1TuWEvS6Lozlx8SOJEc/exec' };
+const CONFIG = { WEBHOOK_URL: '' };
 </script>
 <style>
 
@@ -128,6 +128,52 @@ const CONFIG = { WEBHOOK_URL: 'https://script.google.com/macros/s/AKfycbwTeRCRAd
   .tile.off::after{content:'lien à renseigner';position:absolute;top:10px;right:10px;font-size:9.5px;color:var(--mid);background:var(--mid-bg);border:1px solid rgba(255,207,92,.3);padding:2px 7px;border-radius:8px}
   /* ---- dashboard ---- */
   .kpis{display:grid;grid-template-columns:repeat(auto-fill,minmax(152px,1fr));gap:11px}
+  /* --- écran Suivi QHP (lecture seule) : mêmes codes que l'intranet --- */
+  .ro{font-size:11px;font-weight:700;letter-spacing:.04em;text-transform:uppercase;
+    padding:2px 8px;border-radius:20px;border:1px solid var(--line);color:var(--faint);margin-left:8px;vertical-align:middle}
+  .qlist{display:flex;flex-direction:column;gap:4px;margin:8px 0 4px}
+  .qrow{display:grid;grid-template-columns:minmax(150px,1.4fr) minmax(70px,1fr) 48px minmax(120px,1.1fr);
+    align-items:center;gap:10px;padding:7px 10px;border-radius:10px;background:rgba(255,255,255,.04);
+    border:1px solid var(--line);font-size:13.5px}
+  .qrow.vide{opacity:.5}
+  .qn{font-weight:600;display:flex;align-items:center;gap:7px;min-width:0}
+  .qn span.qag{flex:0 0 auto;font-size:10.5px;font-weight:700;padding:1px 6px;border-radius:6px;
+    background:rgba(255,255,255,.08);color:var(--faint)}
+  .qbar{display:block;height:9px;border-radius:6px;background:rgba(255,255,255,.09);overflow:hidden}
+  .qbar>i{display:block;height:100%;background:linear-gradient(90deg,var(--cyan),#9ad9f5)}
+  .qbar.ok>i{background:linear-gradient(90deg,var(--ok),#6fd6a2)}
+  .qbar.mid>i{background:linear-gradient(90deg,#c99a25,#ecc76a)}
+  .qbar.bad>i{background:linear-gradient(90deg,var(--warn),#f08c78)}
+  .qbar.nul>i{background:transparent}
+  .qv{text-align:right;font-weight:700;font-variant-numeric:tabular-nums}
+  .qd{font-size:12px;color:var(--faint)}
+  .qd .rouge,.qtag.zero b{color:var(--warn)}
+  .qtags{display:flex;flex-wrap:wrap;gap:5px;margin:8px 0 2px}
+  .qtag{font-size:12.5px;padding:3px 9px;border-radius:20px;background:rgba(255,255,255,.05);
+    border:1px solid var(--line);white-space:nowrap}
+  .qtag.zero{border-color:rgba(230,90,70,.5);background:rgba(230,90,70,.12)}
+  .qtag b{font-variant-numeric:tabular-nums;margin-left:3px}
+  details.grille-det{margin-top:12px}
+  details.grille-det>summary{cursor:pointer;font-size:13.5px;font-weight:600;color:var(--cyan);
+    padding:7px 2px;list-style:none}
+  details.grille-det>summary::-webkit-details-marker{display:none}
+  details.grille-det>summary::before{content:'▸ ';display:inline-block;transition:.15s}
+  details.grille-det[open]>summary::before{transform:rotate(90deg)}
+  .tbl-wrap{overflow-x:auto;border:1px solid var(--line);border-radius:10px}
+  table.grille{width:100%;border-collapse:collapse;font-size:12.5px}
+  table.grille th,table.grille td{padding:5px 7px;border-bottom:1px solid var(--line);white-space:nowrap}
+  table.grille th{text-align:left;font-size:11px;text-transform:uppercase;letter-spacing:.05em;color:var(--faint)}
+  table.grille th.mcol,table.grille td.mcol{text-align:center;min-width:26px;padding:5px 3px}
+  table.grille th.mcol i{display:block;font-style:normal;font-size:9px;opacity:.65}
+  table.grille td.sec{color:var(--faint)}
+  table.grille .v{color:var(--ok);font-weight:800}
+  table.grille .z{color:var(--faint)}
+  table.grille .na{color:var(--faint);opacity:.5}
+  @media(max-width:640px){
+    .qrow{grid-template-columns:1fr 46px;gap:4px 8px}
+    .qrow .qbar{grid-column:1/-1;order:3}
+    .qd{grid-column:1/-1;order:4}
+  }
   .kpi{background:rgba(6,14,28,.45);border:1px solid var(--line);border-radius:var(--r);padding:13px 12px 11px;text-align:center;position:relative;transition:.2s;overflow:hidden}
   .kpi:hover{border-color:var(--line2)}
   .kpi .v{font-family:"Barlow Condensed",Arial;font-size:34px;font-weight:700;color:var(--txt);line-height:1.05;word-break:break-word;text-shadow:0 0 24px rgba(116,204,239,.35)}
@@ -514,6 +560,7 @@ const CONFIG = { WEBHOOK_URL: 'https://script.google.com/macros/s/AKfycbwTeRCRAd
   <section class="view" id="v-rem"></section>
   <section class="view" id="v-se"></section>
   <section class="view" id="v-flash"></section>
+  <section class="view" id="v-qhp"></section>
   <section class="view" id="v-obj"></section>
   <section class="view" id="v-reglages">
     <div class="barre"><h2>⚙️ Réglages</h2></div>
@@ -781,8 +828,7 @@ function moisLigne(k,ag){
 const COLS_SOMME=['heures','effectif','accArret','accSans','benins','trajet','joursArret','mp',
   'vmsAuto','vmsMan','vms','vmsCd','vmsAd','dechetsT','accueilsAuto','accueilsMan','accueils','accueilsEmb','accueilsInt',
   'arrivants','interimaires','visites',
-  'vigiAtt','vigiRecu','qhpEff','qhpPart','formationsAuto','formationsMan','formations',
-  'prets','pretsEnCours'];
+  'vigiAtt','vigiRecu','qhpEff','qhpPart','formationsAuto','formationsMan','formations'];
 /* vue Global d'un mois : la somme des agences, calculée, jamais stockée */
 function moisSomme(k){
   const l=state.mensuel.filter(x=>x.k===k);
@@ -802,12 +848,18 @@ function moisNonRepartis(){return state.mensuel.filter(m=>!(m.agence||'')&&COLS_
 function actifs(l){return (l||[]).filter(x=>!x.supprime)}
 
 /* ==================== NAVIGATION ==================== */
+let QHP=null, ACC_AUTO='';
+let qhpGroupe=(function(){try{return localStorage.getItem('rep_qhp_groupe')||'secteur'}catch(e){return 'secteur'}})();
+function setQhpGroupe(g){qhpGroupe=(g==='agence')?'agence':'secteur';
+  try{localStorage.setItem('rep_qhp_groupe',qhpGroupe)}catch(e){}renderQhp()}
+
 const ECRANS = [
   {id:'v-mensuel',t:'Mensuel',c:'var(--accent)',r:renderMensuel},
   {id:'v-acc',t:'Accidentologie',c:'var(--warn)',r:renderAcc},
   {id:'v-rem',t:'Remontées',c:'var(--cyan)',r:renderRem},
   {id:'v-se',t:'Santé & Environnement',c:'var(--ok)',r:renderSE},
   {id:'v-flash',t:'Flashs SSE',c:'var(--accent)',r:renderFlash},
+  {id:'v-qhp',t:'Suivi QHP',c:'var(--cyan)',r:renderQhp},
   {id:'v-obj',t:'Objectifs SSE',c:'var(--violet)',r:renderObj}
 ];
 /* ---------- écran de correspondance chantier → agence ----------
@@ -924,7 +976,6 @@ const GROUPES=[
   {id:'acc',  t:'Accidentologie',     c:'#ff8f85'},
   {id:'anim', t:'Animation HSE',      c:'#ffcf5c'},
   {id:'arr',  t:'Nouveaux arrivants', c:'#a9e8c6'},
-  {id:'mat',  t:'Matériel prêté',     c:'#8fd3c8'},
   {id:'env',  t:'Environnement',      c:'#c4a6f0'}
 ];
 const COLS=[
@@ -947,8 +998,6 @@ const COLS=[
   {k:'accueils',t:'Accueils total',g:'arr',total:['accueilsAuto','accueilsMan'],gras:true},
   {k:'formationsAuto',t:'Fiches formation digital',g:'arr',auto:'bascule'},{k:'formationsMan',t:'Fiches formation papier',g:'arr'},
   {k:'formations',t:'Fiches formation total',g:'arr',total:['formationsAuto','formationsMan'],gras:true},
-  {k:'prets',t:'Prêts remis',tt:'Prêts de matériel remis dans le mois',g:'mat',auto:'bascule'},
-  {k:'pretsEnCours',t:'Encore dehors',tt:'Engins encore chez un emprunteur à la fin du mois',g:'mat',auto:'bascule',etat:true},
   {k:'dechetsT',t:'Déchets (t)',g:'env'},{k:'dechetsVal',t:'Valorisé (%)',g:'env'}
 ];
 // compatibilité : COLM = colonnes saisissables, COLM_AUTO = colonnes qui viennent des outils
@@ -970,7 +1019,6 @@ function sourceAuto(c){
   if(/^formations/.test(c.k))return 'le registre des fiches de formation';
   if(c.k==='visites')return 'le classeur CR Observations';
   if(/^vms/.test(c.k))return 'le classeur VMS';
-  if(/^pret/.test(c.k))return 'le classeur des prêts de matériel';
   return 'tes outils';
 }
 /* ---------- notes et doutes sur les indicateurs ----------
@@ -998,9 +1046,9 @@ const NOTES_COL = [
   [['dechetsT','dechetsVal'],{src:'Saisie',txt:'Tonnage et part valorisée. Aucun historique 2026 : ça démarre maintenant.'}],
   [['vigiAtt','vigiRecu'],{src:'Janvier→juin : ancien reporting 2026 sur IDF, par défaut · depuis juillet : classeur Reporting Vigiminutes (SYNTHÈSE MENSUELLE), par agence',dep:'juil. 2026',
     txt:'Les six premiers mois sont en orange : ce sont les chiffres de l’ancien reporting, saisir la case les confirme. Depuis juillet, les blocs IDF / NA / BPL du classeur remplissent les cases 🤖.'}],
-  [['qhpEff','qhpPart'],{src:'Janvier→août : ancien reporting 2026 sur IDF · depuis septembre : appli Suivi QHP (roster + présences), par agence',dep:'sept. 2026',
-    txt:'Juin→août ne sont pas dans l’ancien reporting : à compléter à la main. Depuis septembre, l’effectif et les participants de chaque agence viennent de l’agence portée par le roster.',
-    doute:{id:'qhp-fige',txt:'La propriété QHP_FIGE_JUSQUA ne sert plus (la bascule la remplace) : si tu l’avais posée dans le script, tu peux la retirer.'}}],
+  [['qhpEff','qhpPart'],{src:'Janvier→mai : ancien reporting 2026 sur IDF · depuis septembre : appli Suivi QHP (roster + présences), par agence',dep:'sept. 2026',
+    txt:'Juin, juillet et août sont vides dans l’ancien reporting. Les 14 fiches QHP de juin à septembre sont reprises dans l’appli Suivi QHP : elles alimentent les deux tableaux de l’intranet (par conducteur de travaux, par collaborateur) mais PAS ces deux cases, protégées par la bascule.',
+    doute:{id:'qhp-juin-aout',txt:'Les 14 fiches de juin→septembre ne touchent que 12, 12, 8 puis 3 collaborateurs sur 116 — environ 10 % de participation, contre 80 % en janvier→mai. Soit la participation a vraiment chuté cet été, soit toutes les fiches papier ne sont pas numérisées. Quand tu auras tranché : propriété QHP_AUTO = 2026-06 dans le script pour que juin→août remontent ici aussi.'}}],
   [['vmsAuto','vmsMan','vms','vmsCd','vmsAd'],{src:'Digital : classeur VMS (une ligne par observation, colonne Agence) depuis sept., saisie avant · papier : saisie · CD / AD : classeur VMS depuis sept.',dep:'sept. 2026',
     txt:'Même mécanique que les accueils : total (en gras) = digital + papier. Une visite = un n° de VMS ; CD et AD comptent les observations « Condition dangereuse » / « Acte dangereux » de l’appli, par agence (colonne Agence, sinon le chantier). Janvier→août : tes VMS saisies sont passées en digital.',
     doute:{id:'vms-aout-na',txt:'Tes VMS de juillet-août sont remises (Sarcelles 27/07 : 6 CD, 3 AD ; Tourbière de Pérols-sur-Vézère 28/08 : 2 CD), sur IDF comme tu les avais saisies. Celle du 28/08 (pilote Régis, Corrèze) est sans doute NA : la case porte un ⚠️. Les CD / AD des VMS papier ne sont comptées nulle part — dis-moi si tu veux aussi une colonne papier pour elles.'}}],
@@ -1008,10 +1056,7 @@ const NOTES_COL = [
     txt:'Total = digital + papier, recalculé à chaque saisie. Le registre distingue embauchés et intérimaires : c’est ce qui pose les valeurs par défaut des nouveaux arrivants et intérimaires.',
     doute:{id:'juin-bpl',txt:'Juin BPL : 4 intérimaires rattachés à BPL d’après le lieu (Suscinio, Trignac), pas d’après une agence écrite — à confirmer. La case est marquée ⚠️ dans le tableau.'}}],
   [['visites'],{src:'Classeur CR Observations — visites distinctes (n° + date + chantier), colonne Agence du classeur, sinon le chantier',dep:'sept. 2026',txt:'Avant : ancien reporting, IDF.',
-    doute:{id:'cr-agence',txt:'Ta colonne Agence est encore vide sur les CR déjà saisis : tant qu’elle l’est, l’agence vient du chantier (table des chantiers, alimentée par les Vigiminutes) ; un chantier inconnu tombe en « non réparti » — à corriger dans 🗺 Chantiers ou dans la colonne.'}}],
-  [['prets','pretsEnCours'],{src:'Appli Prêt de matériel — classeur des prêts (colonne Agence, sinon le chantier)',dep:'sept. 2026',
-    txt:'« Prêts remis » compte les mises à disposition du mois, à la date de REMISE de l’engin — pas à la date où la convention a été préparée. « Encore dehors » est un état de fin de mois : les engins dont la période de mise à disposition court encore. C’est une photo, pas un cumul : on ne l’additionne jamais d’un mois sur l’autre.',
-    doute:{id:'pret-remise',txt:'Un prêt préparé au bureau mais jamais remis n’est compté nulle part : c’est voulu. Et comme personne ne saisit de date de restitution, un engin est réputé dehors jusqu’à la date de FIN de la convention — s’il rentre plus tôt, le compteur ne le sait pas, et s’il reste plus longtemps, il n’apparaît plus. Le chiffre dit donc « ce qui devrait être dehors », ce qui suffit pour suivre le volume.'}}]
+    doute:{id:'cr-agence',txt:'Ta colonne Agence est encore vide sur les CR déjà saisis : tant qu’elle l’est, l’agence vient du chantier (table des chantiers, alimentée par les Vigiminutes) ; un chantier inconnu tombe en « non réparti » — à corriger dans 🗺 Chantiers ou dans la colonne.'}}]
 ];
 const NOTES_ECRAN = {
   'v-acc':[
@@ -1185,9 +1230,6 @@ function renderMensuel(){
   h+='<tr class="tot"><td><b>TOTAL</b></td>';
   COLS.forEach(c=>{
     if(c.calc){const a=S(c.calc[1]);h+='<td class="calc g-'+c.g+'">'+(a?Math.round(S(c.calc[0])/a*100)+' %':'—')+'</td>';return}
-    /* une colonne d'ÉTAT (ce qui est dehors à la fin du mois) ne s'additionne pas :
-       la somme des douze photos ne veut rien dire. On renvoie au dernier mois. */
-    if(c.etat){h+='<td class="num g-'+c.g+'" title="Un état de fin de mois ne s’additionne pas : c’est la ligne du dernier mois qui compte.">—</td>';return}
     h+='<td class="num g-'+c.g+(c.petit?' petit':'')+'"><b>'+(S(c.k)||0).toLocaleString('fr-FR')+'</b></td>'});
   h+='</tr></tbody></table></div>';
   const moisL=k=>MOIS_L[Number(k.slice(5,7))-1]+' '+k.slice(0,4);
@@ -1489,6 +1531,99 @@ function nouveauFlash(k,nat){
 /* ==================== ÉCRAN 5 — OBJECTIFS SSE ==================== */
 const DOM_COUL={'SECURITE':'#ff6b5e','SÉCURITÉ':'#ff6b5e','SANTE':'#3D9BD9','SANTÉ':'#3D9BD9',
   'ENVIRONNEMENT':'#1FA866','CULTURE SSE':'#9A6BE0'};
+/* ===========================================================================
+ *  ÉCRAN SUIVI QHP — en LECTURE SEULE
+ *  Les mêmes deux tableaux que l'intranet, calculés par le serveur depuis
+ *  l'appli Suivi QHP. Rien ne se saisit ici : c'est ce qui rend impossible
+ *  toute contradiction entre les trois outils.
+ * ========================================================================= */
+const MOIS_C1=['J','F','M','A','M','J','J','A','S','O','N','D'];
+function qbar(pc,cls){
+  return '<span class="qbar '+(cls||'')+'"><i style="width:'+Math.max(0,Math.min(100,pc))+'%"></i></span>';
+}
+function enteteMoisQ(mois){
+  return (mois||[]).map((m,i)=>{
+    const an=String(m.k).slice(2,4), chg=(i===0)||String(mois[i-1].k).slice(0,4)!==String(m.k).slice(0,4);
+    return '<th class="mcol" title="'+esc(String(m.k))+'">'+MOIS_C1[Number(String(m.k).slice(5,7))-1]+(chg?'<i>'+an+'</i>':'')+'</th>';
+  }).join('');
+}
+function renderQhp(){
+  const box=document.getElementById('v-qhp'); if(!box)return;
+  const q=QHP;
+  if(!q||!q.collaborateurs||!q.collaborateurs.length){
+    box.innerHTML='<div class="card"><h2>📋 Suivi des QHP</h2>'
+      +'<p class="hint">Ces tableaux sont calculés à partir de l’appli <b>Suivi QHP</b> et arrivent avec la synchronisation. '
+      +'Clique sur <b>Synchroniser</b> : s’ils restent vides, c’est que la propriété <code>QHP_SHEET_ID</code> n’est pas renseignée côté script.</p></div>';
+    return;
+  }
+  const obj=q.objAn||6;
+  let h='<div class="card"><h2>📋 Suivi des QHP <span class="ro">lecture seule</span></h2>';
+  h+='<p class="hint">Tout se saisit dans l’appli <b>Suivi QHP</b> : cet écran ne fait que l’afficher, '
+    +'donc personne ne peut se contredire d’un outil à l’autre.</p>';
+
+  /* --- les conducteurs --- */
+  const lc=q.conducteurs||[], actifs=lc.filter(c=>c.total>0).length;
+  const maxc=Math.max(1,...lc.map(c=>c.total||0));
+  h+='<h3>👷 Les conducteurs de travaux <span class="hint" style="font-weight:400">— QHP animés sur 12 mois glissants</span></h3>';
+  h+='<div class="qlist">';
+  lc.forEach(c=>{
+    h+='<div class="qrow'+(c.total?'':' vide')+'">'
+      +'<span class="qn">'+esc(c.nom)+'<span class="qag">'+esc(c.agence||'')+'</span></span>'
+      +qbar(c.total/maxc*100,c.total?'':'nul')
+      +'<span class="qv">'+c.total+'</span>'
+      +'<span class="qd">'+(c.chantiers||0)+' chantier'+((c.chantiers||0)>1?'s':'')
+      +' · '+(c.participants||0)+' participation'+((c.participants||0)>1?'s':'')+'</span></div>';
+  });
+  h+='</div><p class="hint"><b>'+actifs+'</b> conducteur(s) sur '+lc.length+' ont animé au moins un QHP.</p>';
+  if(q.condInconnus&&q.condInconnus.length)
+    h+='<p class="hint">⚠️ Animateur non reconnu : '+q.condInconnus.map(x=>esc(x.t)+' ('+x.n+')').join(', ')
+      +' — corrige l’orthographe dans la fiche QHP pour qu’il compte.</p>';
+
+  /* --- les collaborateurs --- */
+  const l=q.collaborateurs, atteint=l.filter(c=>c.total>=obj).length, zero=l.filter(c=>c.total===0).length;
+  h+='<h3 style="margin-top:22px">🧑‍🤝‍🧑 La participation des collaborateurs '
+    +'<span class="hint" style="font-weight:400">— objectif '+obj+' QHP par an</span></h3>';
+  h+='<div class="kpis" style="margin-bottom:12px">'
+    +'<div class="kpi"><div class="v">'+l.length+'</div><div class="l">Collaborateurs suivis</div></div>'
+    +'<div class="kpi"><div class="v">'+atteint+'</div><div class="l">Ont atteint les '+obj+' QHP</div></div>'
+    +'<div class="kpi"><div class="v">'+zero+'</div><div class="l">N’ont suivi aucun QHP</div></div></div>';
+  h+='<div class="seg no-print" style="margin-bottom:10px">'
+    +'<button class="'+(qhpGroupe==='secteur'?'on':'')+'" onclick="setQhpGroupe(\'secteur\')">Par secteur</button>'
+    +'<button class="'+(qhpGroupe==='agence'?'on':'')+'" onclick="setQhpGroupe(\'agence\')">Par agence</button></div>';
+  const grp={};
+  l.forEach(c=>{const k=(qhpGroupe==='agence'?(c.agence||'—'):(c.secteur||'Sans groupe'));(grp[k]=grp[k]||[]).push(c)});
+  h+='<div class="qlist">';
+  Object.keys(grp).sort((a,b)=>a.localeCompare(b,'fr')).forEach(g=>{
+    const gl=grp[g], ok=gl.filter(c=>c.total>=obj).length, rien=gl.filter(c=>c.total===0).length;
+    const pc=gl.length?Math.round(ok/gl.length*100):0;
+    h+='<div class="qrow"><span class="qn">'+esc(g)+'<span class="qag">'+gl.length+'</span></span>'
+      +qbar(pc,pc>=80?'ok':pc>=40?'mid':'bad')
+      +'<span class="qv">'+pc+' %</span>'
+      +'<span class="qd">'+ok+' à l’objectif'+(rien?' · <b class="rouge">'+rien+' à zéro</b>':'')+'</span></div>';
+  });
+  h+='</div>';
+  const sous=l.filter(c=>c.total<obj).sort((a,b)=>a.total-b.total||a.nom.localeCompare(b.nom,'fr'));
+  if(sous.length){
+    h+='<details class="grille-det" open><summary>🚩 À relancer — '+sous.length+' collaborateur(s) sous les '+obj+' QHP</summary>';
+    h+='<div class="qtags">'+sous.map(c=>'<span class="qtag'+(c.total?'':' zero')+'" title="'
+      +esc((c.secteur||'—')+' · '+(c.agence||'—'))+'">'+esc(c.nom)+' <b>'+c.total+'</b></span>').join('')+'</div></details>';
+  } else h+='<p class="hint">✅ Tout le monde a atteint l’objectif sur les 12 derniers mois.</p>';
+
+  h+='<details class="grille-det"><summary>Voir le détail mois par mois ('+l.length+' collaborateurs)</summary>';
+  h+='<div class="tbl-wrap" style="margin-top:8px"><table class="grille"><thead><tr><th>Collaborateur</th><th class="sec">'
+    +(qhpGroupe==='agence'?'Agence':'Groupe')+'</th>'+enteteMoisQ(q.mois)+'<th style="text-align:center">Total</th></tr></thead><tbody>';
+  Object.keys(grp).sort((a,b)=>a.localeCompare(b,'fr')).forEach(g=>{
+    grp[g].slice().sort((a,b)=>a.nom.localeCompare(b.nom,'fr')).forEach(c=>{
+      h+='<tr><td>'+esc(c.nom)+'</td><td class="sec">'+esc(g)+'</td>';
+      (c.mois||[]).forEach(v=>{h+='<td class="mcol">'+(v===1?'<span class="v">✓</span>':v===0?'<span class="z">·</span>':'<span class="na">–</span>')+'</td>'});
+      h+='<td style="text-align:center"><b>'+c.total+'</b></td></tr>';
+    });
+  });
+  h+='</tbody></table></div><p class="hint">✓ = au moins un QHP ce mois-là · « · » = aucun · « – » = hors période ou neutralisé dans l’appli Suivi QHP.</p></details>';
+  if(q.calculeLe)h+='<p class="hint" style="margin-top:10px">Calculé le '+esc(new Date(q.calculeLe).toLocaleString('fr-FR'))+'.</p>';
+  h+='</div>';
+  box.innerHTML=h;
+}
 function renderObj(){
   const l=actifs(state.objectifs);
   const smi=s=>s||'';
@@ -1987,6 +2122,11 @@ function appliquer(d){
   if(d.bascule&&/^\d{4}-\d{2}$/.test(d.bascule))BASCULE=d.bascule;
   if(d.agenceHistorique)AGENCE_HISTO=d.agenceHistorique;
   if(d.vigiAuto&&/^\d{4}-\d{2}$/.test(d.vigiAuto))VIGI_AUTO=d.vigiAuto;
+  if(d.accAuto&&/^\d{4}-\d{2}$/.test(d.accAuto))ACC_AUTO=d.accAuto;
+  /* Les tableaux QHP arrivent en LECTURE SEULE : ils ne sont ni saisis ici ni
+     renvoyés au serveur. La saisie reste dans l'appli Suivi QHP — c'est ce qui
+     garantit qu'on ne peut pas se contredire d'un écran à l'autre. */
+  if(d.qhp&&typeof d.qhp==='object')QHP=d.qhp;
   if(d.params&&typeof d.params==='object')state.params=Object.assign({},state.params,d.params);
   normaliserMensuel();
   save();
